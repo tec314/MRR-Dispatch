@@ -212,6 +212,7 @@ public class Main {
 					// Insert a small delay to prevent high CPU usage
 					try {
 						Thread.sleep(10); // Adjust this value as needed
+						frame.getContentPane().setBackground(Color.BLACK);
 
 						SIG_201A.update();
 						SIG_201A.render(frame.getGraphics());
@@ -256,8 +257,8 @@ public class Main {
 						SW5.render(frame.getGraphics());
 						SW6.update();
 						SW6.render(frame.getGraphics());
-						
-						for(Node node : nodeArray) {
+
+						for (Node node : nodeArray) {
 							node.update();
 							node.renderGUI(frame.getGraphics(), Color.WHITE);
 						}
@@ -330,29 +331,19 @@ public class Main {
 				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, frame);
 
 		node1 = new Node(width / 7, height / 4, false, true, "1", null, null, false, frame);
-		nodeArray.add(node1);
 		node2 = new Node((float) width / 7, (float) (height / 3.2), false, true, "2", null, null, false, frame);
-		nodeArray.add(node2);
 		node3 = new Node(width - width / 7, height / 4, true, false, "3", null, null, true, frame);
-		nodeArray.add(node3);
 		node4 = new Node(width - width / 7, (float) (height / 3.2), true, false, "4", null, null, true, frame);
-		nodeArray.add(node4);
 		node5 = new Node(width / 7, (float) (height / 1.78), true, false, "5", null, null, true, frame);
-		nodeArray.add(node5);
 		node6 = new Node(width / 7, (float) (height / 1.6), true, false, "6", null, null, true, frame);
-		nodeArray.add(node6);
 		node7 = new Node(width - width / 7, (float) (height / 1.78), false, true, "7", null, null, false, frame);
-		nodeArray.add(node7);
 		node8 = new Node(width - width / 7, (float) (height / 1.6), false, true, "8", null, null, false, frame);
-		nodeArray.add(node8);
 		node9 = new Node((float) (width / 3.5 + Math.cos(Math.toRadians(30)) * width / 8),
 				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4), false, false, "9", null, null,
 				false, frame);
-		nodeArray.add(node9);
 		node10 = new Node((float) (width - (width / 3.5 + Math.cos(Math.toRadians(30)) * width / 8)),
 				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4), false, false, "10", null, null,
 				false, frame);
-		nodeArray.add(node10);
 	}
 
 	static void setNodeConnections() {
