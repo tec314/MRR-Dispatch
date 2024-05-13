@@ -203,7 +203,7 @@ public class Main {
 
 		initialization(frame);
 		setNodeConnections();
-		//
+		
 		// Create a separate thread for continuous updating
 		Thread updateThread = new Thread(new Runnable() {
 			@Override
