@@ -34,6 +34,8 @@ public class Node {
         this.thisSignal = sig;
         this.thisSwitch = sw;
         this.isEndOfScreen = s;
+        
+        Main.nodeArray.add(this);
     }
 
     // Update method
