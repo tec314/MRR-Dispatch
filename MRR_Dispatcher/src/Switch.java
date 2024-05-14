@@ -1,6 +1,7 @@
 import java.awt.*;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class Switch {
     private float switchXFactor;
@@ -12,7 +13,7 @@ public class Switch {
     private boolean thrown = true;
     private String entryDirection;
     private String name;
-    private JFrame frame;
+    private JPanel panel;
     private int width;
     private int height;
     
@@ -21,10 +22,10 @@ public class Switch {
     Node thrownNode;
 
     // Constructor
-    public Switch(float x, float y, int t, int c, String ed, String nm, JFrame frame) {
-    	this.frame = frame;
-    	width = frame.getWidth();
-    	height = frame.getHeight();
+    public Switch(float x, float y, int t, int c, String ed, String nm, JPanel panel) {
+    	this.panel = panel;
+    	width = panel.getWidth();
+    	height = panel.getHeight();
         switchXFactor = width/x;
         switchYFactor = height/y;
     	
@@ -36,21 +37,21 @@ public class Switch {
         this.entryDirection = ed;
         this.name = nm;
         
-        entryNode = new Node(x, y, false, false, "E ", null, this, false, frame);
-        Main.nodeArray.add(entryNode);
-        closedNode = new Node((float) (x + Math.cos(Math.toRadians(closedAngle))*(width/96)), (float) (y + Math.sin(Math.toRadians(closedAngle))*(height/48)), false, false, "C ", null, this, false, frame);
-        Main.nodeArray.add(closedNode);
-        thrownNode = new Node((float) (x + Math.cos(Math.toRadians(thrownAngle))*(width/96)), (float) (y + Math.sin(Math.toRadians(thrownAngle))*(height/48)), false, false, "T " + name, null, this, false, frame);
-        Main.nodeArray.add(thrownNode);
+        entryNode = new Node(x, y, false, false, "E ", null, this, false, panel);
+        MRRDispatchFrame.nodeArray.add(entryNode);
+        closedNode = new Node((float) (x + Math.cos(Math.toRadians(closedAngle))*(width/96)), (float) (y + Math.sin(Math.toRadians(closedAngle))*(height/48)), false, false, "C ", null, this, false, panel);
+        MRRDispatchFrame.nodeArray.add(closedNode);
+        thrownNode = new Node((float) (x + Math.cos(Math.toRadians(thrownAngle))*(width/96)), (float) (y + Math.sin(Math.toRadians(thrownAngle))*(height/48)), false, false, "T " + name, null, this, false, panel);
+        MRRDispatchFrame.nodeArray.add(thrownNode);
         
-        Main.switchArray.add(this);
+        MRRDispatchFrame.switchArray.add(this);
     }
 
     // Rest of the Switch class methods...
  // Updates switch position using current frame width and height
     public void update() {
-        width = frame.getWidth();
-        height = frame.getHeight();
+        width = panel.getWidth();
+        height = panel.getHeight();
         switchX = width / switchXFactor;
         switchY = height / switchYFactor;
 
@@ -60,8 +61,7 @@ public class Switch {
     }
     
     // Render switch position on screen
-    public void render(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g;
+    public void render(Graphics2D g2d) {
         g2d.setStroke(new BasicStroke(5)); // Set the stroke width
 
         if (!thrown) {

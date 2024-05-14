@@ -1,6 +1,8 @@
 import java.awt.*;
+import java.awt.geom.Line2D;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class Node {
     private float nodeXFactor;
@@ -18,13 +20,13 @@ public class Node {
     private Node previousNode;
     private Signal thisSignal;
     private Switch thisSwitch;
-    private JFrame frame;
+    private JPanel panel;
 
     // Constructor
-    public Node(float x, float y, boolean n, boolean p, String nm, Signal sig, Switch sw, boolean s, JFrame frame) {
-    	this.frame = frame;
-    	nodeXFactor = frame.getWidth()/x;
-    	nodeYFactor = frame.getHeight()/y;
+    public Node(float x, float y, boolean n, boolean p, String nm, Signal sig, Switch sw, boolean s, JPanel panel) {
+    	this.panel = panel;
+    	nodeXFactor = panel.getWidth()/x;
+    	nodeYFactor = panel.getHeight()/y;
     	
     	this.nodeX = x;
         this.nodeY = y;
@@ -35,28 +37,27 @@ public class Node {
         this.thisSwitch = sw;
         this.isEndOfScreen = s;
         
-        Main.nodeArray.add(this);
+        MRRDispatchFrame.nodeArray.add(this);
     }
 
     // Update method
     public void update() {
-        this.nodeX = frame.getWidth() / nodeXFactor;
-        this.nodeY = frame.getHeight() / nodeYFactor;
+        this.nodeX = panel.getWidth() / nodeXFactor;
+        this.nodeY = panel.getHeight() / nodeYFactor;
     }
 
     // Render method for GUI
-    public void renderGUI(Graphics g, Color c) {
-        g.setColor(c);
+    public void renderGUI(Graphics2D g2d, Color c) {
+        g2d.setColor(c);
         if (nextNode != null && !isEndOfScreen) {
-        	g.drawLine((int) nodeX, (int) nodeY, (int) nextNode.getX(), (int) nextNode.getY());
+        	g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) nextNode.getX(), (float) nextNode.getY()));
         }
     }
 
     // Render method for connections
-    public void renderConnections(Graphics g, Color c, String dir) {
-        Graphics2D g2d = (Graphics2D) g;
+    public void renderConnections(Graphics g2d, Color c, String dir) {
         g2d.setColor(c);
-        g2d.setStroke(new BasicStroke(4));
+        //g2d.setStroke(new BasicStroke(4));
 
         if (nextNode != null && !isEndPointForNext && dir.equals("CW") && !endOfPath) {
             g2d.drawLine((int) nodeX, (int) nodeY, (int) nextNode.getX(), (int) nextNode.getY());
@@ -65,22 +66,22 @@ public class Node {
             g2d.drawLine((int) nodeX, (int) nodeY, (int) previousNode.getX(), (int) previousNode.getY());
         }
         if (isEndPointForPrev || isEndPointForNext) {
-            g.setColor(c);
-            g.fillOval((int) (nodeX - 5), (int) (nodeY - 5), 10, 10);
+        	g2d.setColor(c);
+        	g2d.fillOval((int) (nodeX - 5), (int) (nodeY - 5), 10, 10);
         }
         if (endOfPath) {
-            g.setColor(Color.RED);
-            g.drawLine((int) (nodeX + Math.cos(Math.toRadians(45)) * 10), (int) (nodeY + Math.sin(Math.toRadians(45)) * 10), (int) (nodeX + Math.cos(Math.toRadians(225)) * 10), (int) (nodeY + Math.sin(Math.toRadians(225)) * 10));
-            g.drawLine((int) (nodeX + Math.cos(Math.toRadians(135)) * 10), (int) (nodeY + Math.sin(Math.toRadians(135)) * 10), (int) (nodeX + Math.cos(Math.toRadians(315)) * 10), (int) (nodeY + Math.sin(Math.toRadians(315)) * 10));
+            g2d.setColor(Color.RED);
+            g2d.drawLine((int) (nodeX + Math.cos(Math.toRadians(45)) * 10), (int) (nodeY + Math.sin(Math.toRadians(45)) * 10), (int) (nodeX + Math.cos(Math.toRadians(225)) * 10), (int) (nodeY + Math.sin(Math.toRadians(225)) * 10));
+            g2d.drawLine((int) (nodeX + Math.cos(Math.toRadians(135)) * 10), (int) (nodeY + Math.sin(Math.toRadians(135)) * 10), (int) (nodeX + Math.cos(Math.toRadians(315)) * 10), (int) (nodeY + Math.sin(Math.toRadians(315)) * 10));
         }
     }
 
     // Debug render method
-    public void renderDebug(Graphics g) {
-        g.setColor(new Color(255, 100, 0));
-        g.drawOval((int) (nodeX - 7.5), (int) (nodeY - 7.5), 15, 15);
-        g.setColor(Color.RED);
-        g.drawString(name, (int) nodeX, (int) (nodeY + 10));
+    public void renderDebug(Graphics g2D) {
+        g2D.setColor(new Color(255, 100, 0));
+        g2D.drawOval((int) (nodeX - 7.5), (int) (nodeY - 7.5), 15, 15);
+        g2D.setColor(Color.RED);
+        g2D.drawString(name, (int) (nodeX + 20), (int) (nodeY + 20));
     }
 
     void setNextAndPreviousNode(Node n) {

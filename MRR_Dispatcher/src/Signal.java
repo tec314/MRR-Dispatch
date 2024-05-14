@@ -15,17 +15,18 @@ public class Signal {
 	private Boolean isBuffer;
 	private String signalState = "";
 	private String signalFlow = "";
-	private JFrame frame;
+	private JPanel panel;
 
 	Node signalNode;
 	Switch signalSwitch;
 
 	// Constructor
 	public Signal(float x, float y, String name, String type, String direction, String flow, Switch sw, Boolean buffer,
-			JFrame frame) {
-		this.frame = frame;
-		int width = frame.getWidth();
-		int height = frame.getHeight();
+			JPanel panel) {
+		this.panel = panel;
+		int width = panel.getWidth();
+		int height = panel.getHeight();
+		
 		this.signalXFactor = width / x;
 		this.signalYFactor = height / y;
 
@@ -38,24 +39,24 @@ public class Signal {
 		this.isBuffer = buffer;
 		this.signalSwitch = sw;
 
-		this.signalNode = new Node(x, y, false, false, "S", this, null, false, frame);
-		Main.signalArray.add(this);
+		this.signalNode = new Node(x, y, false, false, "S", this, null, false, panel);
+		MRRDispatchFrame.signalArray.add(this);
+		
 	}
 
 	// Updates signal position
 	public void update() {
-		signalX = frame.getWidth() / signalXFactor;
+		signalX = panel.getWidth() / signalXFactor;
 		if (signalDirection.equals("<--")) {
-			signalY = (frame.getHeight() / signalYFactor) - (frame.getHeight() / 35);
+			signalY = (panel.getHeight() / signalYFactor) - (panel.getHeight() / 35);
 		} else {
-			signalY = (frame.getHeight() / signalYFactor) + (frame.getHeight() / 35);
+			signalY = (panel.getHeight() / signalYFactor) + (panel.getHeight() / 35);
 		}
 		signalNode.update();
 	}
 
 	// Renders signal on screen
-	public void render(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
+	public void render(Graphics2D g2d) {
 		if (!isBuffer) {
 			// DOUBLE_HEAD Signal Graphic
 			if (signalType.equals("DOUBLE_HEAD")) {
