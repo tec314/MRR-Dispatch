@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.util.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 public class Main {
 	public static Switch SW6;
@@ -40,9 +42,13 @@ public class Main {
 	public static Node node11;
 
 	public static ArrayList<Signal> signalArray = new ArrayList<Signal>();
+	public static ArrayList<Switch> switchArray = new ArrayList<Switch>();
 	public static ArrayList<Node> nodeArray = new ArrayList<Node>();
+	
+	public static Boolean debug = false;
 
 	public static void main(String[] args) {
+		
 		// Create a new JFrame
 		System.out.println("Loop?");
 		JFrame frame = new JFrame("Model Railroad Dispatcher");
@@ -193,8 +199,7 @@ public class Main {
 		});
 
 		debugToggleButton.addActionListener(e -> {
-			// Add action for Tool 1
-			System.out.println("Tool 1 selected");
+			debug = !debug;
 		});
 
 		// Add menus to the menu bar
@@ -204,7 +209,8 @@ public class Main {
 		initialization(frame);
 		setNodeConnections();
 		
-		// Create a separate thread for continuous updating
+		// Loop for drawing map
+		
 		Thread updateThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -212,55 +218,23 @@ public class Main {
 					// Insert a small delay to prevent high CPU usage
 					try {
 						Thread.sleep(10); // Adjust this value as needed
-						frame.getContentPane().setBackground(Color.BLACK);
-
-						SIG_201A.update();
-						SIG_201A.render(frame.getGraphics());
-						SIG_201B.update();
-						SIG_201B.render(frame.getGraphics());
-						SIG_202A.update();
-						SIG_202A.render(frame.getGraphics());
-						SIG_202B.update();
-						SIG_202B.render(frame.getGraphics());
-						SIG_203A.update();
-						SIG_203A.render(frame.getGraphics());
-						SIG_203B.update();
-						SIG_203B.render(frame.getGraphics());
-						SIG_204A.update();
-						SIG_204A.render(frame.getGraphics());
-						SIG_204B.update();
-						SIG_204B.render(frame.getGraphics());
-						SIG_205A.update();
-						SIG_205A.render(frame.getGraphics());
-						SIG_205B.update();
-						SIG_205B.render(frame.getGraphics());
-						SIG_206A.update();
-						SIG_206A.render(frame.getGraphics());
-						SIG_206B.update();
-						SIG_206B.render(frame.getGraphics());
-						SIG_207A.update();
-						SIG_207A.render(frame.getGraphics());
-						SIG_208A.update();
-						SIG_208A.render(frame.getGraphics());
-						buffer1.update();
-						buffer2.update();
-
-						SW1.update();
-						SW1.render(frame.getGraphics());
-						SW2.update();
-						SW2.render(frame.getGraphics());
-						SW3.update();
-						SW3.render(frame.getGraphics());
-						SW4.update();
-						SW4.render(frame.getGraphics());
-						SW5.update();
-						SW5.render(frame.getGraphics());
-						SW6.update();
-						SW6.render(frame.getGraphics());
-
+						
+						for (Switch sw : switchArray) {
+							sw.update();
+							sw.render(frame.getGraphics());
+						}
+						
+						for (Signal sig : signalArray) {
+							sig.update();
+							sig.render(frame.getGraphics());
+						}
+						
 						for (Node node : nodeArray) {
 							node.update();
 							node.renderGUI(frame.getGraphics(), Color.WHITE);
+							if(debug) {
+								node.renderDebug(frame.getGraphics());
+							}
 						}
 
 					} catch (InterruptedException e) {
@@ -285,50 +259,50 @@ public class Main {
 				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8), 0, 30, "CCW", "SW2", frame);
 		SW1 = new Switch((float) (width / 3.5), (float) (height / 1.6), 30, 0, "CCW", "SW1", frame);
 
-		SIG_201A = new Signal((float) (510), (float) (height / 4), "SIG-201A", "DOUBLE_HEAD", "-->", "CW", SW5, frame);
+		SIG_201A = new Signal((float) (510), (float) (height / 4), "SIG-201A", "DOUBLE_HEAD", "-->", "CW", SW5, false, frame);
 		signalArray.add(SIG_201A);
 		SIG_201B = new Signal((float) (510), (float) (height / 3.2), "SIG-201B", "SINGLE_HEAD", "-->", "CW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_201B);
 		SIG_202A = new Signal((float) (910), (float) (height / 4), "SIG-202A", "SINGLE_HEAD", "<--", "CCW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_202A);
 		SIG_202B = new Signal((float) (910), (float) (height / 3.2), "SIG-202B", "DOUBLE_HEAD", "<--", "CCW", SW4,
-				frame);
+				false, frame);
 		signalArray.add(SIG_202B);
-		SIG_203A = new Signal((float) (1480), (float) (height / 4), "SIG-203A", "DOUBLE_HEAD", "-->", "CW", SW3, frame);
+		SIG_203A = new Signal((float) (1480), (float) (height / 4), "SIG-203A", "DOUBLE_HEAD", "-->", "CW", SW3, false, frame);
 		signalArray.add(SIG_203A);
 		SIG_203B = new Signal((float) (1480), (float) (height / 3.2), "SIG-203B", "SINGLE_HEAD", "-->", "CW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_203B);
 		SIG_204A = new Signal((float) (450), (float) (height / 1.6), "SIG-204A", "DOUBLE_HEAD", "-->", "CCW", SW1,
-				frame);
+				false, frame);
 		signalArray.add(SIG_204A);
 		SIG_204B = new Signal((float) (450), (float) (height / 1.78), "SIG-204B", "SINGLE_HEAD", "-->", "CCW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_204B);
 		SIG_205A = new Signal((float) (730), (float) (height / 1.6), "SIG-205A", "SINGLE_HEAD", "<--", "CW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_205A);
 		SIG_205B = new Signal((float) (730), (float) (height / 1.78), "SIG-205B", "SINGLE_HEAD", "<--", "CW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_205B);
 		SIG_206A = new Signal((float) (1200), (float) (height / 1.6), "SIG-206A", "SINGLE_HEAD", "-->", "CCW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_206A);
 		SIG_206B = new Signal((float) (1200), (float) (height / 1.78), "SIG-206B", "SINGLE_HEAD", "-->", "CCW", null,
-				frame);
+				false, frame);
 		signalArray.add(SIG_206B);
 		SIG_207A = new Signal((float) (790), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
-				"SIG-207A", "SINGLE_HEAD", "<--", "CW", null, frame);
+				"SIG-207A", "SINGLE_HEAD", "<--", "CW", null, false, frame);
 		signalArray.add(SIG_207A);
 		SIG_208A = new Signal((float) (1130), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
-				"SIG-208A", "SINGLE_HEAD", "-->", "CCW", null, frame);
+				"SIG-208A", "SINGLE_HEAD", "-->", "CCW", null, false, frame);
 		signalArray.add(SIG_208A);
 		buffer1 = new Signal((float) (width / 2), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8),
-				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, frame); // FOR END OF FREIGHT STORAGE TRACK
+				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, true, frame); // FOR END OF FREIGHT STORAGE TRACK
 		buffer2 = new Signal((float) (width / 2.7), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
-				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, frame);
+				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, true, frame);
 
 		node1 = new Node(width / 7, height / 4, false, true, "1", null, null, false, frame);
 		node2 = new Node((float) width / 7, (float) (height / 3.2), false, true, "2", null, null, false, frame);
@@ -350,7 +324,7 @@ public class Main {
 		// Bleh, node connection hard code >:(
 
 		// setNextAndPreviousNode = next node going clockwise
-		// setPreviousNode = prev node going counterclockwise
+		// setPreviousNode = previous node going counterclockwise
 		node1.setNextAndPreviousNode(SIG_201A.signalNode);
 		// node1.setPreviousNode(node6);
 		node2.setNextAndPreviousNode(SIG_201B.signalNode);
@@ -421,5 +395,4 @@ public class Main {
 		buffer2.signalNode.setNextAndPreviousNode(SW6.thrownNode);
 		// buffer2.signalNode.setPreviousNode(null);
 	}
-	// test
 }

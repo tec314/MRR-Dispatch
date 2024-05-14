@@ -42,6 +42,8 @@ public class Switch {
         Main.nodeArray.add(closedNode);
         thrownNode = new Node((float) (x + Math.cos(Math.toRadians(thrownAngle))*(width/96)), (float) (y + Math.sin(Math.toRadians(thrownAngle))*(height/48)), false, false, "T " + name, null, this, false, frame);
         Main.nodeArray.add(thrownNode);
+        
+        Main.switchArray.add(this);
     }
 
     // Rest of the Switch class methods...
