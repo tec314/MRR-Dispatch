@@ -27,8 +27,8 @@ public class Signal {
 		int width = panel.getWidth();
 		int height = panel.getHeight();
 		
-		this.signalXFactor = width / x;
-		this.signalYFactor = height / y;
+		this.signalXFactor = width/x;
+		this.signalYFactor = height/y;
 
 		this.signalName = name;
 		this.signalType = type;

@@ -26,9 +26,9 @@ public class Switch {
     	this.panel = panel;
     	width = panel.getWidth();
     	height = panel.getHeight();
+    	
         switchXFactor = width/x;
         switchYFactor = height/y;
-    	
     	
     	this.switchX = x;
         this.switchY = y;

@@ -25,8 +25,11 @@ public class Node {
     // Constructor
     public Node(float x, float y, boolean n, boolean p, String nm, Signal sig, Switch sw, boolean s, JPanel panel) {
     	this.panel = panel;
-    	nodeXFactor = panel.getWidth()/x;
-    	nodeYFactor = panel.getHeight()/y;
+    	int width = panel.getWidth();
+		int height = panel.getHeight();
+		
+    	nodeXFactor = width/x;
+    	nodeYFactor = height/y;
     	
     	this.nodeX = x;
         this.nodeY = y;

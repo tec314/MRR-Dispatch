@@ -239,7 +239,7 @@ public class MRRDispatchFrame extends JFrame {
 		SW6 = new Switch((float) (width / 3.78), (float) (height / 1.78), 330, 0, "CCW", "SW6", panel);
 		SW5 = new Switch((float) (width / 3), (float) (height / 4), 30, 0, "CW", "SW5", panel);
 		SW4 = new Switch((float) (width / 3 + Math.cos(Math.toRadians(30)) * width / 16),
-				(float) (height / 4 + Math.sin(Math.toRadians(30)) * height / 8), 210, 180, "CCW", "SW4", panel);
+				(float) (height / 3.2), 210, 180, "CCW", "SW4", panel);
 		SW3 = new Switch((float) (width - width / 3.5), (float) (height / 1.6), 150, 180, "CW", "SW3", panel);
 		SW2 = new Switch((float) (width / 3.5 + Math.cos(Math.toRadians(30)) * width / 16),
 				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8), 0, 30, "CCW", "SW2", panel);
@@ -401,11 +401,13 @@ public class MRRDispatchFrame extends JFrame {
 			for (Switch sw : switchArray) {
 				sw.update();
 				sw.render(g2d);
+				repaint();
 			}
 			
 			for (Signal sig : signalArray) {
 				sig.update();
 				sig.render(g2d);
+				repaint();
 			}
 			
 			for (Node node : nodeArray) {
@@ -414,6 +416,7 @@ public class MRRDispatchFrame extends JFrame {
 				if(debug) {
 					node.renderDebug(g2d);
 				}
+				repaint();
 			}
 			System.out.println("REPAINT!");
 			System.out.println("DIM: " + mapPanel.getWidth() + ", " + mapPanel.getHeight());
