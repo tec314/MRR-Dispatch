@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -76,6 +78,7 @@ public class MRRDispatchFrame extends JFrame {
 		setLayout(new BorderLayout());
 		optionsPanel.setBackground(Color.WHITE);
 		mapPanel.setBackground(Color.BLACK);
+		mapPanel.setLayout(null);
 		
 		mapPanel.setSize(1904, 1018);
 
@@ -107,6 +110,15 @@ public class MRRDispatchFrame extends JFrame {
 		// Add toolsButton menu to menu bar
 		menuBar.add(toolsDropdown);
 
+		JMenu helpDropdown = new JMenu("Help");
+		
+		menuBar.add(helpDropdown);
+		
+		// Add menus to the menu bar
+		menuBar.add(actionDropdown);
+		menuBar.add(toolsDropdown);
+		menuBar.add(helpDropdown);
+		
 		// Set the menu bar for the frame
 		optionsPanel.add(menuBar);
 
@@ -217,10 +229,6 @@ public class MRRDispatchFrame extends JFrame {
 		debugToggleButton.addActionListener(e -> {
 			debug = !debug;
 		});
-
-		// Add menus to the menu bar
-		menuBar.add(actionDropdown);
-		menuBar.add(toolsDropdown);
 		
 		add(optionsPanel, BorderLayout.NORTH);
 		add(mapPanel, BorderLayout.CENTER);
@@ -235,16 +243,18 @@ public class MRRDispatchFrame extends JFrame {
 	void initialization(JPanel panel) {
 		int width = panel.getWidth();
 		int height = panel.getHeight();
-
-		SW6 = new Switch((float) (width / 3.78), (float) (height / 1.78), 330, 0, "CCW", "SW6", panel);
-		SW5 = new Switch((float) (width / 3), (float) (height / 4), 30, 0, "CW", "SW5", panel);
+		
+		// Switch Initializations
+		SW6 = new Switch((float) (width / 3.78), (float) (height / 1.78), 330, 0, "CCW", "NW", "SW6", panel);
+		SW5 = new Switch((float) (width / 3), (float) (height / 4), 30, 0, "CW", "NW", "SW5", panel);
 		SW4 = new Switch((float) (width / 3 + Math.cos(Math.toRadians(30)) * width / 16),
-				(float) (height / 3.2), 210, 180, "CCW", "SW4", panel);
-		SW3 = new Switch((float) (width - width / 3.5), (float) (height / 1.6), 150, 180, "CW", "SW3", panel);
+				(float) (height / 3.2), 210, 180, "CCW", "SE", "SW4", panel);
+		SW3 = new Switch((float) (width - width / 3.5), (float) (height / 1.6), 150, 180, "CW", "SE", "SW3", panel);
 		SW2 = new Switch((float) (width / 3.5 + Math.cos(Math.toRadians(30)) * width / 16),
-				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8), 0, 30, "CCW", "SW2", panel);
-		SW1 = new Switch((float) (width / 3.5), (float) (height / 1.6), 30, 0, "CCW", "SW1", panel);
-
+				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8), 0, 30, "CCW", "SW", "SW2", panel);
+		SW1 = new Switch((float) (width / 3.5), (float) (height / 1.6), 30, 0, "CCW", "NE", "SW1", panel);
+		
+		// Signal Initializations
 		SIG_201A = new Signal((float) (510), (float) (height / 4), "SIG-201A", "DOUBLE_HEAD", "-->", "CW", SW5, false, panel);
 		signalArray.add(SIG_201A);
 		SIG_201B = new Signal((float) (510), (float) (height / 3.2), "SIG-201B", "SINGLE_HEAD", "-->", "CW", null,
@@ -289,7 +299,8 @@ public class MRRDispatchFrame extends JFrame {
 				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, true, panel); // FOR END OF FREIGHT STORAGE TRACK
 		buffer2 = new Signal((float) (width / 2.7), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, true, panel);
-
+		
+		// Standalone Node Initializations
 		node1 = new Node(width / 7, height / 4, false, true, "1", null, null, false, panel);
 		node2 = new Node((float) width / 7, (float) (height / 3.2), false, true, "2", null, null, false, panel);
 		node3 = new Node(width - width / 7, height / 4, true, false, "3", null, null, true, panel);
@@ -310,77 +321,41 @@ public class MRRDispatchFrame extends JFrame {
 	void setNodeConnections() {
 		// Bleh, node connection hard code >:(
 
-		// setNextAndPreviousNode = next node going clockwise
-		// setPreviousNode = previous node going counterclockwise
+		// setNextAndPreviousNode = next node going clockwise & prev node going counterclockwise
 		node1.setNextAndPreviousNode(SIG_201A.signalNode);
-		// node1.setPreviousNode(node6);
 		node2.setNextAndPreviousNode(SIG_201B.signalNode);
-		// node2.setPreviousNode(node5);
 		SIG_201A.signalNode.setNextAndPreviousNode(SW5.entryNode);
-		// SIG_201A.signalNode.setPreviousNode(node1);
-		// SW5.entryNode.setPreviousNode(SIG_201A.signalNode);
 		SIG_201B.signalNode.setNextAndPreviousNode(SW4.closedNode);
-		// SIG_201B.signalNode.setPreviousNode(node2);
-		// SW4.closedNode.setPreviousNode(SIG_201B.signalNode);
 		SW5.thrownNode.setNextAndPreviousNode(SW4.thrownNode);
 		SW5.closedNode.setNextAndPreviousNode(SIG_202A.signalNode);
-		// SIG_202A.signalNode.setPreviousNode(SW5.closedNode);
 		SW4.entryNode.setNextAndPreviousNode(SIG_202B.signalNode);
-		// SW4.thrownNode.setPreviousNode(SW5.thrownNode);
-		// SIG_202B.signalNode.setPreviousNode(SW4.entryNode);
 		SIG_202A.signalNode.setNextAndPreviousNode(SIG_203A.signalNode);
-		// SIG_203A.signalNode.setPreviousNode(SIG_202A.signalNode);
 		SIG_202B.signalNode.setNextAndPreviousNode(SIG_203B.signalNode);
-		// SIG_203B.signalNode.setPreviousNode(SIG_202B.signalNode);
 		SIG_203A.signalNode.setNextAndPreviousNode(node3);
-		// node3.setPreviousNode(SIG_203A.signalNode);
 		SIG_203B.signalNode.setNextAndPreviousNode(node4);
-		// node4.setPreviousNode(SIG_203B.signalNode);
 		node3.setNextAndPreviousNode(node8);
-		// node8.setPreviousNode(node3);
 		node4.setNextAndPreviousNode(node7);
-		// node7.setPreviousNode(node4);
 		node7.setNextAndPreviousNode(SIG_206B.signalNode);
-		// SIG_206B.signalNode.setPreviousNode(node7);
 		SIG_206B.signalNode.setNextAndPreviousNode(SIG_205B.signalNode);
-		// SIG_205B.signalNode.setPreviousNode(SIG_206B.signalNode);
 		SIG_205B.signalNode.setNextAndPreviousNode(SW6.closedNode);
-		// SIG_204B.signalNode.setPreviousNode(SW6.entryNode);
 		SW6.entryNode.setNextAndPreviousNode(SIG_204B.signalNode);
-		// SW6.closedNode.setPreviousNode(SIG_205B.signalNode);
 		SIG_204B.signalNode.setNextAndPreviousNode(node5);
-		// node5.setPreviousNode(SIG_204B.signalNode);
 		node5.setNextAndPreviousNode(node2);
 		node8.setNextAndPreviousNode(SW3.entryNode);
-		// SW3.entryNode.setPreviousNode(node8);
 		SW3.closedNode.setNextAndPreviousNode(SIG_206A.signalNode);
-		// SIG_206A.signalNode.setPreviousNode(SW3.closedNode);
 		SIG_206A.signalNode.setNextAndPreviousNode(SIG_205A.signalNode);
-		// SIG_205A.signalNode.setPreviousNode(SIG_206A.signalNode);
 		SIG_205A.signalNode.setNextAndPreviousNode(SW1.closedNode);
-		// SW1.closedNode.setPreviousNode(SIG_205A.signalNode);
 		SW1.entryNode.setNextAndPreviousNode(SIG_204A.signalNode);
-		// SIG_204A.signalNode.setPreviousNode(SW1.entryNode);
 		SIG_204A.signalNode.setNextAndPreviousNode(node6);
-		// node6.setPreviousNode(SIG_204A.signalNode);
 		node6.setNextAndPreviousNode(node1);
 		SW3.thrownNode.setNextAndPreviousNode(node10);
-		// node10.setPreviousNode(SW3.thrownNode);
 		node10.setNextAndPreviousNode(SIG_208A.signalNode);
-		// SIG_208A.signalNode.setPreviousNode(node10);
 		SIG_208A.signalNode.setNextAndPreviousNode(SIG_207A.signalNode);
-		// SIG_207A.signalNode.setPreviousNode(SIG_208A.signalNode);
 		SIG_207A.signalNode.setNextAndPreviousNode(node9);
-		// node9.setPreviousNode(SIG_207A.signalNode);
 		node9.setNextAndPreviousNode(SW2.closedNode);
-		// SW2.closedNode.setPreviousNode(node9);
 		SW2.entryNode.setNextAndPreviousNode(SW1.thrownNode);
-		// SW1.thrownNode.setPreviousNode(SW2.entryNode);
-		// SW2.thrownNode.setPreviousNode(buffer1.signalNode);
 		buffer1.signalNode.setNextAndPreviousNode(SW2.thrownNode);
-		// buffer1.signalNode.setPreviousNode(null);
 		buffer2.signalNode.setNextAndPreviousNode(SW6.thrownNode);
-		// buffer2.signalNode.setPreviousNode(null);
 		
 		repaint();
 	}
@@ -397,6 +372,24 @@ public class MRRDispatchFrame extends JFrame {
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			Graphics2D g2d = (Graphics2D) g;
+			
+			// Curved dashed lines
+			float dashLength[] = new float[1];
+			dashLength[0] = 10;
+			BasicStroke stroke = new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 15, dashLength, 0);
+			
+			g2d.setColor(Color.WHITE);
+			g2d.setStroke(stroke);
+			int arcWidth1 = getWidth() / 5;
+			int arcHeight1 = ((int) (getHeight() / 1.6) - (getHeight() / 4));
+			int arcWidth2 = getWidth() / 8;
+			int arcHeight2 = ((int) (getHeight() / 1.78) - (int) (getHeight() / 3.2));
+			
+			g2d.drawArc((getWidth() / 7) - (arcWidth1/2), (getHeight() / 4), arcWidth1, arcHeight1, 90, 180);
+			g2d.drawArc((getWidth() / 7) - (arcWidth2/2), (int) (getHeight() / 3.2), arcWidth2, arcHeight2, 90, 180);
+			
+			g2d.drawArc((getWidth() - getWidth() / 7) - (arcWidth1/2), (getHeight() / 4), arcWidth1, arcHeight1, -90, 180);
+			g2d.drawArc((getWidth() - getWidth() / 7) - (arcWidth2/2), (int) (getHeight() / 3.2), arcWidth2, arcHeight2, -90, 180);
 			
 			for (Switch sw : switchArray) {
 				sw.update();
@@ -418,8 +411,6 @@ public class MRRDispatchFrame extends JFrame {
 				}
 				repaint();
 			}
-			System.out.println("REPAINT!");
-			System.out.println("DIM: " + mapPanel.getWidth() + ", " + mapPanel.getHeight());
 		}
 	}
 	
@@ -431,7 +422,7 @@ public class MRRDispatchFrame extends JFrame {
 		@Override
 		public void mouseMoved(MouseEvent event) {
 			if(debug) {
-				coordLabel.setText(Integer.toString(event.getX()) + ", " + Integer.toString(event.getY()));
+				coordLabel.setText("  " + Integer.toString(event.getX()) + ", " + Integer.toString(event.getY()));
 			} else {
 				coordLabel.setText("");
 			}
