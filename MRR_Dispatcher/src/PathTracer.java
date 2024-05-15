@@ -3,6 +3,8 @@
 import java.awt.*;
 import java.util.*;
 
+import javax.swing.JPanel;
+
 class pathTracer {
 
   Node startNode;
@@ -23,13 +25,16 @@ class pathTracer {
   String name;
   Color pathColor;
   String pathDirection = "CW";
+  
+  private JPanel panel;
 
-  pathTracer(Node start, int p, String n, Color c) {
-    startNode = start; // initial starting point
-    priorityOfPath = p;
+  pathTracer(Node start, int p, String n, Color c, JPanel panel) {
+	this.startNode = start; // initial starting point
+    this.priorityOfPath = p;
     
-    name = n;
-    pathColor = c;
+    this.name = n;
+    this.pathColor = c;
+    this.panel = panel;
   }
   
   // Update the current starting point of the path
@@ -72,9 +77,9 @@ class pathTracer {
       startNode.occupyNode(priorityOfPath); // <-- maybe? nope lmao
       
       if(pathDirection.equals("CW")) {
-        thisFollowingNode = startNode.nextNode;
+        thisFollowingNode = startNode.getNextNode();
       } else {
-        thisFollowingNode = startNode.previousNode;
+        thisFollowingNode = startNode.getPreviousNode();
       }
       
       // Creates path using linked list            !!!!!! FIGURE OUT SYSTEM FOR IF OCCUPIED FOR MULTIPLE TRAINS
@@ -86,40 +91,40 @@ class pathTracer {
         } else {
           nodePath.add(thisCurrentNode);
           thisCurrentNode.occupyNode(priorityOfPath);
-          if(thisCurrentNode.thisSignal != null && thisCurrentNode.thisSignal.signalFlow.equals(pathDirection)) {
+          if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
             forwSignalPath.add(thisCurrentNode);
           }
           thisCurrentNode = thisFollowingNode;
           if(pathDirection.equals("CW")) {
-            thisFollowingNode = thisCurrentNode.nextNode;
+            thisFollowingNode = thisCurrentNode.getNextNode();
           } else {
-            thisFollowingNode = thisCurrentNode.previousNode;
+            thisFollowingNode = thisCurrentNode.getPreviousNode();
           }
         }
       }
       
       if(thisFollowingNode == startNode) {
         nodePath.add(thisCurrentNode);
-        if(thisCurrentNode.thisSignal != null && thisCurrentNode.thisSignal.signalFlow.equals(pathDirection)) {
+        if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
           oppSignalPath.add(thisCurrentNode);
         }
         thisCurrentNode = thisFollowingNode;
         if(pathDirection.equals("CW")) {
-          thisFollowingNode = thisCurrentNode.nextNode;
+          thisFollowingNode = thisCurrentNode.getNextNode();
         } else {
-          thisFollowingNode = thisCurrentNode.previousNode;
+          thisFollowingNode = thisCurrentNode.getPreviousNode();
         }
         completeLoop = true;
         
         for(int i = 0; i < forwSignalPath.size(); i++) {
-          forwSignalPath.get(i).thisSignal.signalState("CLEAR");
+          forwSignalPath.get(i).getSignal().signalState("CLEAR");
         }
       }
       
       // Hit dead end
       if(thisFollowingNode == null || restrictedAccess) {
         nodePath.add(thisCurrentNode);
-        if(thisCurrentNode.thisSignal != null && thisCurrentNode.thisSignal.signalFlow.equals(pathDirection)) {
+        if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
           forwSignalPath.add(thisCurrentNode);
         }
         thisCurrentNode.isEndOfPath(true);
@@ -127,12 +132,12 @@ class pathTracer {
         
         // Set signals ahead of starting node for trains to prepare to stop at a possible endpoint
         if(forwSignalPath.size() > 0)
-          forwSignalPath.get(forwSignalPath.size() - 1).thisSignal.signalState("STOP");
+          forwSignalPath.get(forwSignalPath.size() - 1).getSignal().signalState("STOP");
         if(forwSignalPath.size() > 1)
-          forwSignalPath.get(forwSignalPath.size() - 2).thisSignal.signalState("APPROACH");
+          forwSignalPath.get(forwSignalPath.size() - 2).getSignal().signalState("APPROACH");
         if(forwSignalPath.size() > 2)
           for(int i = forwSignalPath.size() - 3; i >= 0; i--) {
-            forwSignalPath.get(i).thisSignal.signalState("CLEAR");
+            forwSignalPath.get(i).getSignal().signalState("CLEAR");
           }       
       }
       setSignalsBehind();
@@ -147,47 +152,47 @@ class pathTracer {
     thisCurrentNode = startNode;
     if(pathDirection.equals("CW")) {
       oppDirection = "CCW";
-      thisFollowingNode = startNode.previousNode;
+      thisFollowingNode = startNode.getPreviousNode();
     } else {
       oppDirection = "CW";
-      thisFollowingNode = startNode.nextNode;
+      thisFollowingNode = startNode.getNextNode();
     }
 
     while(thisFollowingNode != null && thisFollowingNode != startNode) {
-      if(thisCurrentNode.thisSignal != null && thisCurrentNode.thisSignal.signalFlow.equals(pathDirection)) {
+      if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
         oppSignalPath.add(thisCurrentNode);
       }
       thisCurrentNode = thisFollowingNode;
       if(oppDirection.equals("CW")) {
-        thisFollowingNode = thisCurrentNode.nextNode;
+        thisFollowingNode = thisCurrentNode.getNextNode();
       } else {
-        thisFollowingNode = thisCurrentNode.previousNode;
+        thisFollowingNode = thisCurrentNode.getPreviousNode();
       }
     }
     
     if(thisFollowingNode == startNode) {
-      if(thisCurrentNode.thisSignal != null && thisCurrentNode.thisSignal.signalFlow.equals(pathDirection)  ) {
+      if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)  ) {
         oppSignalPath.add(thisCurrentNode);
       }
       thisCurrentNode = thisFollowingNode;
       if(oppDirection.equals("CW")) {
-        thisFollowingNode = thisCurrentNode.nextNode;
+        thisFollowingNode = thisCurrentNode.getNextNode();
       } else {
-        thisFollowingNode = thisCurrentNode.previousNode;
+        thisFollowingNode = thisCurrentNode.getPreviousNode();
       }
     }
     
     if(oppSignalPath.size() > 0)
-      oppSignalPath.get(0).thisSignal.signalState("STOP");
+      oppSignalPath.get(0).getSignal().signalState("STOP");
     if(oppSignalPath.size() > 1)
-      oppSignalPath.get(1).thisSignal.signalState("APPROACH");
+      oppSignalPath.get(1).getSignal().signalState("APPROACH");
   }
   
   // Complete possible path for train to take (renders first)
   void renderPath() {
     for(int i = 0; i < nodePath.size(); i++) {
       nodePath.get(i).update();
-      nodePath.get(i).renderConnections(pathColor, pathDirection);
+      nodePath.get(i).renderConnections(panel.getGraphics(), pathColor, pathDirection);
     }
   }
   
@@ -197,10 +202,8 @@ class pathTracer {
     blockPath.clear();
     
     for(int i = 0; i < nodePath.size(); i++) {
-      if(findBlockEnd && nodePath.get(i).thisSignal != null && nodePath.get(i) != startNode) {
+      if(findBlockEnd && nodePath.get(i).getSignal() != null && nodePath.get(i) != startNode) {
         blockPath.add(nodePath.get(i)); // This last entry is the ending signal of the current block
-
-import java.awt.Color;
 
 findBlockEnd = false;
       } else if(findBlockEnd) {
@@ -210,16 +213,14 @@ findBlockEnd = false;
     
     for(int i = 0; i < blockPath.size() - 1; i++) {
       blockPath.get(i).update();
-      blockPath.get(i).renderConnections(color(0,255,0), pathDirection);
+      blockPath.get(i).renderConnections(panel.getGraphics(), Color.GREEN, pathDirection);
     }
   }
   
   String isLoop() {
     if(completeLoop) {
-      fill(0,255,0);
       return "LOOP";
     } else {
-      fill(255,0,0);
       return "NO LOOP";
     }
   }

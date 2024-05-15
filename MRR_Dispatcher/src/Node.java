@@ -58,15 +58,17 @@ public class Node {
     }
 
     // Render method for connections
-    public void renderConnections(Graphics g2d, Color c, String dir) {
-        g2d.setColor(c);
-        //g2d.setStroke(new BasicStroke(4));
-
+    public void renderConnections(Graphics g, Color c, String dir) {
+    	Graphics2D g2d = (Graphics2D) g;
+        g2d.setStroke(new BasicStroke(2));
+    	
         if (nextNode != null && !isEndPointForNext && dir.equals("CW") && !endOfPath) {
-            g2d.drawLine((int) nodeX, (int) nodeY, (int) nextNode.getX(), (int) nextNode.getY());
+        	g2d.setColor(c);
+        	g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) nextNode.getX(), (float) nextNode.getY()));
         }
         if (previousNode != null && !isEndPointForPrev && dir.equals("CCW") && !endOfPath) {
-            g2d.drawLine((int) nodeX, (int) nodeY, (int) previousNode.getX(), (int) previousNode.getY());
+        	g2d.setColor(c);
+        	g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) previousNode.getX(), (float) previousNode.getY()));
         }
         if (isEndPointForPrev || isEndPointForNext) {
         	g2d.setColor(c);
@@ -106,6 +108,14 @@ public class Node {
       
       float getY() {
         return nodeY;
+      }
+      
+      Node getNextNode() {
+    	  return nextNode;
+      }
+      
+      Node getPreviousNode() {
+    	  return previousNode;
       }
       
       Signal getSignal() {

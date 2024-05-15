@@ -57,6 +57,7 @@ public class Switch {
 		panel.add(throwSwitchButton);
 		throwSwitchButton.addActionListener(e -> {
 			this.toggleSwitch();
+			MRRDispatchFrame.updateTrains();
 		});
 
 		MRRDispatchFrame.switchArray.add(this);

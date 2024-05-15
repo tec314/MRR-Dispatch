@@ -65,6 +65,7 @@ public class MRRDispatchFrame extends JFrame {
 	public static ArrayList<Signal> signalArray = new ArrayList<Signal>();
 	public static ArrayList<Switch> switchArray = new ArrayList<Switch>();
 	public static ArrayList<Node> nodeArray = new ArrayList<Node>();
+	public static ArrayList<Train> trainArray = new ArrayList<Train>();
 	
 	public static Boolean debug = false;
 	
@@ -194,6 +195,16 @@ public class MRRDispatchFrame extends JFrame {
 			if (result == JOptionPane.OK_OPTION) {
 				String trainName = trainNameField.getText();
 				String trainType = "";
+				String direction = "";
+				Node startingSignal = null;
+				for (Node node : nodeArray) {
+					if(node.getSignal() != null && String.valueOf(signalDropdown.getSelectedItem()).equals(node.getSignal().getName())) {
+						startingSignal = node;
+					}
+				}
+				int numberOfEquipment = Integer.parseInt(equipmentField.getText());
+				int priority = prioritySlider.getValue();
+				
 				if (passengerButton.isSelected()) {
 					trainType = "Passenger";
 				} else if (freightButton.isSelected()) {
@@ -201,18 +212,15 @@ public class MRRDispatchFrame extends JFrame {
 				} else if (mowButton.isSelected()) {
 					trainType = "MOW";
 				}
-				int numberOfEquipment = Integer.parseInt(equipmentField.getText());
-				int priority = prioritySlider.getValue();
-				// String direction = directionField.getText();
-				// String startingSignal = startingSignalField.getText();
+				
+				if (clockwiseButton.isSelected()) {
+					direction = "CW";
+				} else if (counterclockwiseButton.isSelected()) {
+					direction = "CCW";
+				} 
 
-				// Use the inputs as needed (you can print them for now)
-				System.out.println("Train Name: " + trainName);
-				System.out.println("Train Type: " + trainType);
-				System.out.println("Number of Equipment: " + numberOfEquipment);
-				System.out.println("Priority: " + priority);
-				// System.out.println("Direction of Travel: " + direction);
-				// System.out.println("Starting Signal: " + startingSignal);
+				trainArray.add(new Train (trainName, trainType, numberOfEquipment, priority, direction, startingSignal, mapPanel));
+				updateTrains();
 			}
 		});
 
@@ -409,6 +417,11 @@ public class MRRDispatchFrame extends JFrame {
 				if(debug) {
 					node.renderDebug(g2d);
 				}
+			}
+			
+			for(Train train : trainArray) {
+				//train.update();
+				train.render();
 				repaint();
 			}
 		}
@@ -426,6 +439,12 @@ public class MRRDispatchFrame extends JFrame {
 			} else {
 				coordLabel.setText("");
 			}
+		}
+	}
+	
+	public static void updateTrains() {
+		for(Train train : trainArray) {
+			train.update();
 		}
 	}
 }
