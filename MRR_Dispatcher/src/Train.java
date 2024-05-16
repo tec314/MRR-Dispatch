@@ -65,4 +65,8 @@ class Train {
       return "CCW";
     }
   }
+  
+  void prepareForRemoval() {
+	  path.resetPath();
+  }
 }

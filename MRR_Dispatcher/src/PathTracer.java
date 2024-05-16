@@ -7,229 +7,247 @@ import javax.swing.JPanel;
 
 class pathTracer {
 
-  Node startNode;
-  Node thisCurrentNode;
-  Node thisFollowingNode;
-  
-  Boolean restrictedAccess = false;
-  int priorityOfPath; // ranked on scale from 1 (lowest) to 10 (highest) and compared to other train paths to see which can occupy first
-  
-  // Drawing path on screen
-  ArrayList<Node> nodePath = new ArrayList<Node>();
-  ArrayList<Node> blockPath = new ArrayList<Node>();
-  ArrayList<Node> forwSignalPath = new ArrayList<Node>();
-  ArrayList<Node> oppSignalPath = new ArrayList<Node>();
+	Node startNode;
+	Node thisCurrentNode;
+	Node thisFollowingNode;
 
-  Boolean completeLoop = false;
-  Boolean cannotCreatePath = false;
-  String name;
-  Color pathColor;
-  String pathDirection = "CW";
-  
-  private JPanel panel;
+	Boolean restrictedAccess = false;
+	int priorityOfPath; // ranked on scale from 1 (lowest) to 10 (highest) and compared to other train
+						// paths to see which can occupy first
 
-  pathTracer(Node start, int p, String n, Color c, JPanel panel) {
-	this.startNode = start; // initial starting point
-    this.priorityOfPath = p;
-    
-    this.name = n;
-    this.pathColor = c;
-    this.panel = panel;
-  }
-  
-  // Update the current starting point of the path
-  void setNewStart(Node start) {
-    startNode = start;
-  }
-  
-  void tracePath() {
-    // Resets current path and is ready for next
-    for(Node node : nodePath) {
-       node.isEndOfPath(false);    
-       node.unoccupyNode();
-    }
-    
-    // Resets all existing signals to STOP       !!!!!! THIS MAY BE CAUSING ISSUES FOR MULTI TRAIN + ISSUES FOR SIGNAL DISPLAY!!!!!!!!!!
-    for(Node node : forwSignalPath) {
-       if(node.getSignal() != null) {
-         //forwSignalPath.get(i).thisSignal.signalState("STOP");
-       }
-    }
-    
-    for(Node node : oppSignalPath) {
-       if(node.getSignal() != null) {
-         //oppSignalPath.get(i).thisSignal.signalState("STOP");
-       }
-    }
-    
-    nodePath.clear(); // clears nodes from previous path for new path
-    forwSignalPath.clear(); // clears signals from previous path for new path
-    oppSignalPath.clear(); // clears signals behind train
-    
-    //println("START NODE: " + str(startNode.getOccupiedPriority()));
-    //println("THIS PATH: " + str(priorityOfPath));
-    if(startNode.isOccupied() && startNode.getOccupiedPriority() > priorityOfPath) {  // !!!!! START NODE IS 0 FOR SOME REASON
-      cannotCreatePath = true;
-    } else {
-      cannotCreatePath = false;
-      thisCurrentNode = startNode;
-      restrictedAccess = false;
-      startNode.occupyNode(priorityOfPath); // <-- maybe? nope lmao
-      
-      if(pathDirection.equals("CW")) {
-        thisFollowingNode = startNode.getNextNode();
-      } else {
-        thisFollowingNode = startNode.getPreviousNode();
-      }
-      
-      // Creates path using linked list            !!!!!! FIGURE OUT SYSTEM FOR IF OCCUPIED FOR MULTIPLE TRAINS
-      while(thisFollowingNode != null && thisFollowingNode != startNode && !restrictedAccess) {
-        //println(name + " -> Occ Node Priority: " + str(thisFollowingNode.getOccupiedPriority()) + " This Path Priority: " + str(priorityOfPath));
-        //println("Direction: " + pathDirection);
-        if(thisFollowingNode.isOccupied() && thisFollowingNode.getOccupiedPriority() > priorityOfPath) {
-          restrictedAccess = true;
-        } else {
-          nodePath.add(thisCurrentNode);
-          thisCurrentNode.occupyNode(priorityOfPath);
-          if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
-            forwSignalPath.add(thisCurrentNode);
-          }
-          thisCurrentNode = thisFollowingNode;
-          if(pathDirection.equals("CW")) {
-            thisFollowingNode = thisCurrentNode.getNextNode();
-          } else {
-            thisFollowingNode = thisCurrentNode.getPreviousNode();
-          }
-        }
-      }
-      
-      if(thisFollowingNode == startNode) {
-        nodePath.add(thisCurrentNode);
-        if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
-          oppSignalPath.add(thisCurrentNode);
-        }
-        thisCurrentNode = thisFollowingNode;
-        if(pathDirection.equals("CW")) {
-          thisFollowingNode = thisCurrentNode.getNextNode();
-        } else {
-          thisFollowingNode = thisCurrentNode.getPreviousNode();
-        }
-        completeLoop = true;
-        
-        for(int i = 0; i < forwSignalPath.size(); i++) {
-          forwSignalPath.get(i).getSignal().signalState("CLEAR");
-        }
-      }
-      
-      // Hit dead end
-      if(thisFollowingNode == null || restrictedAccess) {
-        nodePath.add(thisCurrentNode);
-        if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
-          forwSignalPath.add(thisCurrentNode);
-        }
-        thisCurrentNode.isEndOfPath(true);
-        completeLoop = false;
-        
-        // Set signals ahead of starting node for trains to prepare to stop at a possible endpoint
-        if(forwSignalPath.size() > 0)
-          forwSignalPath.get(forwSignalPath.size() - 1).getSignal().signalState("STOP");
-        if(forwSignalPath.size() > 1)
-          forwSignalPath.get(forwSignalPath.size() - 2).getSignal().signalState("APPROACH");
-        if(forwSignalPath.size() > 2)
-          for(int i = forwSignalPath.size() - 3; i >= 0; i--) {
-            forwSignalPath.get(i).getSignal().signalState("CLEAR");
-          }       
-      }
-      setSignalsBehind();
-    }
-  }
-  
-  
-  // Set signals behind of starting nodes for other trains behind occupied block
-  void setSignalsBehind() {
-    String oppDirection;
-    
-    thisCurrentNode = startNode;
-    if(pathDirection.equals("CW")) {
-      oppDirection = "CCW";
-      thisFollowingNode = startNode.getPreviousNode();
-    } else {
-      oppDirection = "CW";
-      thisFollowingNode = startNode.getNextNode();
-    }
+	// Drawing path on screen
+	ArrayList<Node> nodePath = new ArrayList<Node>();
+	ArrayList<Node> blockPath = new ArrayList<Node>();
+	ArrayList<Node> forwSignalPath = new ArrayList<Node>();
+	ArrayList<Node> oppSignalPath = new ArrayList<Node>();
 
-    while(thisFollowingNode != null && thisFollowingNode != startNode) {
-      if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
-        oppSignalPath.add(thisCurrentNode);
-      }
-      thisCurrentNode = thisFollowingNode;
-      if(oppDirection.equals("CW")) {
-        thisFollowingNode = thisCurrentNode.getNextNode();
-      } else {
-        thisFollowingNode = thisCurrentNode.getPreviousNode();
-      }
-    }
-    
-    if(thisFollowingNode == startNode) {
-      if(thisCurrentNode.getSignal() != null && thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)  ) {
-        oppSignalPath.add(thisCurrentNode);
-      }
-      thisCurrentNode = thisFollowingNode;
-      if(oppDirection.equals("CW")) {
-        thisFollowingNode = thisCurrentNode.getNextNode();
-      } else {
-        thisFollowingNode = thisCurrentNode.getPreviousNode();
-      }
-    }
-    
-    if(oppSignalPath.size() > 0)
-      oppSignalPath.get(0).getSignal().signalState("STOP");
-    if(oppSignalPath.size() > 1)
-      oppSignalPath.get(1).getSignal().signalState("APPROACH");
-  }
-  
-  // Complete possible path for train to take (renders first)
-  void renderPath() {
-    for(int i = 0; i < nodePath.size(); i++) {
-      nodePath.get(i).update();
-      nodePath.get(i).renderConnections(panel.getGraphics(), pathColor, pathDirection);
-    }
-  }
-  
-  // Second render of only the block portion of the path, that is the current spot of the train relative to signals (as these are the places where IR sensors can detect where a train is)
-  void renderBlock() {
-    Boolean findBlockEnd = true;
-    blockPath.clear();
-    
-    for(int i = 0; i < nodePath.size(); i++) {
-      if(findBlockEnd && nodePath.get(i).getSignal() != null && nodePath.get(i) != startNode) {
-        blockPath.add(nodePath.get(i)); // This last entry is the ending signal of the current block
+	Boolean completeLoop = false;
+	Boolean cannotCreatePath = false;
+	String name;
+	Color pathColor;
+	String pathDirection = "CW";
 
-findBlockEnd = false;
-      } else if(findBlockEnd) {
-        blockPath.add(nodePath.get(i));
-      }
-    }
-    
-    for(int i = 0; i < blockPath.size() - 1; i++) {
-      blockPath.get(i).update();
-      blockPath.get(i).renderConnections(panel.getGraphics(), Color.GREEN, pathDirection);
-    }
-  }
-  
-  String isLoop() {
-    if(completeLoop) {
-      return "LOOP";
-    } else {
-      return "NO LOOP";
-    }
-  }
-  
-  Boolean cannotCreate() {
-    return cannotCreatePath;
-  }
-  
-  void setPathDirection(String dir) {
-    pathDirection = dir;
-  }
+	private JPanel panel;
+
+	pathTracer(Node start, int p, String n, Color c, JPanel panel) {
+		this.startNode = start; // initial starting point
+		this.priorityOfPath = p;
+
+		this.name = n;
+		this.pathColor = c;
+		this.panel = panel;
+	}
+
+	// Update the current starting point of the path
+	void setNewStart(Node start) {
+		startNode = start;
+	}
+
+	void resetPath() {
+		for (Node node : nodePath) {
+			node.setPathColor(Color.WHITE);
+			node.isEndOfPath(false);
+			node.unoccupyNode();
+		}
+		
+		// Resets all existing signals to STOP !!!!!! THIS MAY BE CAUSING ISSUES FOR
+		// MULTI TRAIN + ISSUES FOR SIGNAL DISPLAY!!!!!!!!!!
+		for (Node node : forwSignalPath) {
+			if (node.getSignal() != null) {
+				// forwSignalPath.get(i).thisSignal.signalState("STOP");
+			}
+		}
+
+		for (Node node : oppSignalPath) {
+			if (node.getSignal() != null) {
+				// oppSignalPath.get(i).thisSignal.signalState("STOP");
+			}
+		}
+
+		nodePath.clear(); // clears nodes from previous path for new path
+		forwSignalPath.clear(); // clears signals from previous path for new path
+		oppSignalPath.clear(); // clears signals behind train
+	}
+
+	void tracePath() {
+		// Resets current path and is ready for next
+		resetPath();
+
+		// println("START NODE: " + str(startNode.getOccupiedPriority()));
+		// println("THIS PATH: " + str(priorityOfPath));
+		if (startNode.isOccupied() && startNode.getOccupiedPriority() > priorityOfPath) { // !!!!! START NODE IS 0 FOR
+																							// SOME REASON
+			cannotCreatePath = true;
+		} else {
+			cannotCreatePath = false;
+			thisCurrentNode = startNode;
+			restrictedAccess = false;
+			startNode.occupyNode(priorityOfPath); // <-- maybe? nope lmao
+
+			if (pathDirection.equals("CW")) {
+				thisFollowingNode = startNode.getNextNode();
+			} else {
+				thisFollowingNode = startNode.getPreviousNode();
+			}
+
+			// Creates path using linked list !!!!!! FIGURE OUT SYSTEM FOR IF OCCUPIED FOR
+			// MULTIPLE TRAINS
+			while (thisFollowingNode != null && thisFollowingNode != startNode && !restrictedAccess) {
+				// println(name + " -> Occ Node Priority: " +
+				// str(thisFollowingNode.getOccupiedPriority()) + " This Path Priority: " +
+				// str(priorityOfPath));
+				// println("Direction: " + pathDirection);
+				if (thisFollowingNode.isOccupied() && thisFollowingNode.getOccupiedPriority() > priorityOfPath) {
+					restrictedAccess = true;
+				} else {
+					nodePath.add(thisCurrentNode);
+					thisCurrentNode.occupyNode(priorityOfPath);
+					if (thisCurrentNode.getSignal() != null
+							&& thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
+						forwSignalPath.add(thisCurrentNode);
+					}
+					thisCurrentNode = thisFollowingNode;
+					if (pathDirection.equals("CW")) {
+						thisFollowingNode = thisCurrentNode.getNextNode();
+					} else {
+						thisFollowingNode = thisCurrentNode.getPreviousNode();
+					}
+				}
+			}
+
+			if (thisFollowingNode == startNode) {
+				nodePath.add(thisCurrentNode);
+				if (thisCurrentNode.getSignal() != null
+						&& thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
+					oppSignalPath.add(thisCurrentNode);
+				}
+				thisCurrentNode = thisFollowingNode;
+				if (pathDirection.equals("CW")) {
+					thisFollowingNode = thisCurrentNode.getNextNode();
+				} else {
+					thisFollowingNode = thisCurrentNode.getPreviousNode();
+				}
+				completeLoop = true;
+
+				for (int i = 0; i < forwSignalPath.size(); i++) {
+					forwSignalPath.get(i).getSignal().signalState("CLEAR");
+				}
+			}
+
+			// Hit dead end
+			if (thisFollowingNode == null || restrictedAccess) {
+				nodePath.add(thisCurrentNode);
+				if (thisCurrentNode.getSignal() != null
+						&& thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
+					forwSignalPath.add(thisCurrentNode);
+				}
+				thisCurrentNode.isEndOfPath(true);
+				completeLoop = false;
+
+				// Set signals ahead of starting node for trains to prepare to stop at a
+				// possible endpoint
+				if (forwSignalPath.size() > 0)
+					forwSignalPath.get(forwSignalPath.size() - 1).getSignal().signalState("STOP");
+				if (forwSignalPath.size() > 1)
+					forwSignalPath.get(forwSignalPath.size() - 2).getSignal().signalState("APPROACH");
+				if (forwSignalPath.size() > 2)
+					for (int i = forwSignalPath.size() - 3; i >= 0; i--) {
+						forwSignalPath.get(i).getSignal().signalState("CLEAR");
+					}
+			}
+			setSignalsBehind();
+		}
+	}
+
+	// Set signals behind of starting nodes for other trains behind occupied block
+	void setSignalsBehind() {
+		String oppDirection;
+
+		thisCurrentNode = startNode;
+		if (pathDirection.equals("CW")) {
+			oppDirection = "CCW";
+			thisFollowingNode = startNode.getPreviousNode();
+		} else {
+			oppDirection = "CW";
+			thisFollowingNode = startNode.getNextNode();
+		}
+
+		while (thisFollowingNode != null && thisFollowingNode != startNode) {
+			if (thisCurrentNode.getSignal() != null
+					&& thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
+				oppSignalPath.add(thisCurrentNode);
+			}
+			thisCurrentNode = thisFollowingNode;
+			if (oppDirection.equals("CW")) {
+				thisFollowingNode = thisCurrentNode.getNextNode();
+			} else {
+				thisFollowingNode = thisCurrentNode.getPreviousNode();
+			}
+		}
+
+		if (thisFollowingNode == startNode) {
+			if (thisCurrentNode.getSignal() != null
+					&& thisCurrentNode.getSignal().getSignalFlow().equals(pathDirection)) {
+				oppSignalPath.add(thisCurrentNode);
+			}
+			thisCurrentNode = thisFollowingNode;
+			if (oppDirection.equals("CW")) {
+				thisFollowingNode = thisCurrentNode.getNextNode();
+			} else {
+				thisFollowingNode = thisCurrentNode.getPreviousNode();
+			}
+		}
+
+		if (oppSignalPath.size() > 0)
+			oppSignalPath.get(0).getSignal().signalState("STOP");
+		if (oppSignalPath.size() > 1)
+			oppSignalPath.get(1).getSignal().signalState("APPROACH");
+	}
+
+	// Complete possible path for train to take (renders first)
+	void renderPath() {
+		for (int i = 0; i < nodePath.size(); i++) {
+			nodePath.get(i).update();
+			nodePath.get(i).renderConnections(panel.getGraphics(), pathColor, pathDirection);
+		}
+	}
+
+	// Second render of only the block portion of the path, that is the current spot
+	// of the train relative to signals (as these are the places where IR sensors
+	// can detect where a train is)
+	void renderBlock() {
+		Boolean findBlockEnd = true;
+		blockPath.clear();
+
+		for (int i = 0; i < nodePath.size(); i++) {
+			if (findBlockEnd && nodePath.get(i).getSignal() != null && nodePath.get(i) != startNode) {
+				blockPath.add(nodePath.get(i)); // This last entry is the ending signal of the current block
+
+				findBlockEnd = false;
+			} else if (findBlockEnd) {
+				blockPath.add(nodePath.get(i));
+			}
+		}
+
+		for (int i = 0; i < blockPath.size() - 1; i++) {
+			blockPath.get(i).update();
+			blockPath.get(i).renderConnections(panel.getGraphics(), Color.GREEN, pathDirection);
+		}
+	}
+
+	String isLoop() {
+		if (completeLoop) {
+			return "LOOP";
+		} else {
+			return "NO LOOP";
+		}
+	}
+
+	Boolean cannotCreate() {
+		return cannotCreatePath;
+	}
+
+	void setPathDirection(String dir) {
+		pathDirection = dir;
+	}
 }

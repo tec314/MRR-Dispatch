@@ -21,6 +21,8 @@ public class Node {
     private Signal thisSignal;
     private Switch thisSwitch;
     private JPanel panel;
+    
+    private Color pathColor; // for path color, white if not used, colored if used
 
     // Constructor
     public Node(float x, float y, boolean n, boolean p, String nm, Signal sig, Switch sw, boolean s, JPanel panel) {
@@ -40,6 +42,8 @@ public class Node {
         this.thisSwitch = sw;
         this.isEndOfScreen = s;
         
+        this.pathColor = Color.WHITE;
+        
         MRRDispatchFrame.nodeArray.add(this);
     }
 
@@ -51,7 +55,9 @@ public class Node {
 
     // Render method for GUI
     public void renderGUI(Graphics2D g2d, Color c) {
-        g2d.setColor(c);
+        //g2d.setColor(c);
+    	g2d.setColor(pathColor);
+        g2d.setStroke(new BasicStroke(2));
         if (nextNode != null && !isEndOfScreen) {
         	g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) nextNode.getX(), (float) nextNode.getY()));
         }
@@ -63,12 +69,14 @@ public class Node {
         g2d.setStroke(new BasicStroke(2));
     	
         if (nextNode != null && !isEndPointForNext && dir.equals("CW") && !endOfPath) {
-        	g2d.setColor(c);
-        	g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) nextNode.getX(), (float) nextNode.getY()));
+        	this.setPathColor(c);
+        	//g2d.setColor(c);
+        	//g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) nextNode.getX(), (float) nextNode.getY()));
         }
         if (previousNode != null && !isEndPointForPrev && dir.equals("CCW") && !endOfPath) {
-        	g2d.setColor(c);
-        	g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) previousNode.getX(), (float) previousNode.getY()));
+        	previousNode.setPathColor(c);
+        	//g2d.setColor(c);
+        	//g2d.draw(new Line2D.Double((float) nodeX, (float) nodeY, (float) previousNode.getX(), (float) previousNode.getY()));
         }
         if (isEndPointForPrev || isEndPointForNext) {
         	g2d.setColor(c);
@@ -108,6 +116,10 @@ public class Node {
       
       float getY() {
         return nodeY;
+      }
+      
+      void setPathColor(Color c) {
+    	  pathColor = c;
       }
       
       Node getNextNode() {

@@ -42,6 +42,8 @@ public class Signal {
 		this.signalNode = new Node(x, y, false, false, "S", this, null, false, panel);
 		MRRDispatchFrame.signalArray.add(this);
 		
+		//this.signalState("STOP");    // "Wake up" signal for use (UNCOMMENT AFTER DEBUGGING)
+		
 	}
 
 	// Updates signal position

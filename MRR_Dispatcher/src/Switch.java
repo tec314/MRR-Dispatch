@@ -53,6 +53,8 @@ public class Switch {
 				this, false, panel);
 		MRRDispatchFrame.nodeArray.add(thrownNode);
 
+		//this.toggleSwitch();   // "Wake up" switch for use (UNCOMMENT AFTER DEBUGGING)
+		
 		throwSwitchButton = new JButton(name);
 		panel.add(throwSwitchButton);
 		throwSwitchButton.addActionListener(e -> {
@@ -86,35 +88,6 @@ public class Switch {
 		entryNode.update();
 		closedNode.update();
 		thrownNode.update();
-	}
-
-	// Render switch position on screen
-	public void render(Graphics2D g2d) {
-		g2d.setStroke(new BasicStroke(5)); // Set the stroke width
-
-		if (!thrown) {
-			g2d.setColor(Color.BLACK); // Set color for closed position
-			g2d.drawLine((int) switchX, (int) switchY,
-					(int) (switchX + Math.cos(Math.toRadians(thrownAngle)) * (width / 96)),
-					(int) (switchY + Math.sin(Math.toRadians(thrownAngle)) * (height / 48)));
-
-			g2d.setColor(Color.WHITE); // Set color for thrown position
-			g2d.setStroke(new BasicStroke(2)); // Set the stroke width
-			g2d.drawLine((int) switchX, (int) switchY,
-					(int) (switchX + Math.cos(Math.toRadians(closedAngle)) * (width / 96)),
-					(int) (switchY + Math.sin(Math.toRadians(closedAngle)) * (height / 48)));
-		} else {
-			g2d.setColor(Color.BLACK); // Set color for closed position
-			g2d.drawLine((int) switchX, (int) switchY,
-					(int) (switchX + Math.cos(Math.toRadians(closedAngle)) * (width / 96)),
-					(int) (switchY + Math.sin(Math.toRadians(closedAngle)) * (height / 48)));
-
-			g2d.setColor(Color.WHITE); // Set color for thrown position
-			g2d.setStroke(new BasicStroke(2)); // Set the stroke width
-			g2d.drawLine((int) switchX, (int) switchY,
-					(int) (switchX + Math.cos(Math.toRadians(thrownAngle)) * (width / 96)),
-					(int) (switchY + Math.sin(Math.toRadians(thrownAngle)) * (height / 48)));
-		}
 	}
 
 	// Toggle switch position

@@ -1,6 +1,7 @@
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -8,6 +9,9 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
@@ -23,7 +27,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+
+import javax.swing.*;
 
 public class MRRDispatchFrame extends JFrame {
 	public static Switch SW6;
@@ -112,6 +119,11 @@ public class MRRDispatchFrame extends JFrame {
 		menuBar.add(toolsDropdown);
 
 		JMenu helpDropdown = new JMenu("Help");
+		JMenuItem aboutButton = new JMenuItem("About");
+		JMenuItem githubButton = new JMenuItem("Visit GitHub Page");
+		
+		helpDropdown.add(aboutButton);
+		helpDropdown.add(githubButton);
 		
 		menuBar.add(helpDropdown);
 		
@@ -155,9 +167,10 @@ public class MRRDispatchFrame extends JFrame {
 			typeButtons.add(mowButton);
 			windowPanel.add(typeButtons);
 
-			JTextField equipmentField = new JTextField();
+			SpinnerModel model = new SpinnerNumberModel(1, 1, 100, 1);     
+			JSpinner numEquipmentSpinner = new JSpinner(model);
 			windowPanel.add(new JLabel("Number of Equipment:"));
-			windowPanel.add(equipmentField);
+			windowPanel.add(numEquipmentSpinner);
 
 			// Prompt user for priority (using a slider)
 			JSlider prioritySlider = new JSlider(JSlider.HORIZONTAL, 0, 10, 5); // Min = 0, Max = 10, Default = 5
@@ -191,18 +204,18 @@ public class MRRDispatchFrame extends JFrame {
 			int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Add Train", JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.PLAIN_MESSAGE, customIcon);
 
-			// If the user clicks OK, retrieve the values from the text fields
+			// If the user clicks OK, retrieve the values from the fields
 			if (result == JOptionPane.OK_OPTION) {
 				String trainName = trainNameField.getText();
-				String trainType = "";
-				String direction = "";
+				String trainType = null;
+				String direction = null;
 				Node startingSignal = null;
 				for (Node node : nodeArray) {
 					if(node.getSignal() != null && String.valueOf(signalDropdown.getSelectedItem()).equals(node.getSignal().getName())) {
 						startingSignal = node;
 					}
 				}
-				int numberOfEquipment = Integer.parseInt(equipmentField.getText());
+				int numberOfEquipment = (int) numEquipmentSpinner.getValue();
 				int priority = prioritySlider.getValue();
 				
 				if (passengerButton.isSelected()) {
@@ -218,15 +231,60 @@ public class MRRDispatchFrame extends JFrame {
 				} else if (counterclockwiseButton.isSelected()) {
 					direction = "CCW";
 				} 
-
-				trainArray.add(new Train (trainName, trainType, numberOfEquipment, priority, direction, startingSignal, mapPanel));
-				updateTrains();
+				
+				if(trainName != null && trainType != null && direction != null && startingSignal != null && numberOfEquipment > 0 && priority > 0) {
+					// Correct entry, create new train for entered inputs
+					trainArray.add(new Train (trainName, trainType, numberOfEquipment, priority, direction, startingSignal, mapPanel));
+					updateTrains();
+				} else {
+					// Error in entry, try again
+					JOptionPane.showMessageDialog(null, "INVALID ENTRY\nPlease fill in all fields correctly.", "Error", JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
 
 		removeTrainButton.addActionListener(e -> {
-			// Add action for Action 2
-			System.out.println("Action 2 selected");
+			if(!trainArray.isEmpty()) {
+				// Add action for Action 1
+				System.out.println("Action 1 selected");
+				JPanel windowPanel = new JPanel(new GridLayout(6, 2)); // 6 rows, 2 columns
+				windowPanel.setSize(800, 800);
+				ImageIcon customIcon = new ImageIcon(Main.class.getResource("/icon/septa_icon.png").getPath());
+				Image image = customIcon.getImage(); // transform it
+				Image newimg = image.getScaledInstance(80, 80, java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
+				customIcon = new ImageIcon(newimg); // transform it back
+	
+				JComboBox<String> trainDropdown = new JComboBox<>();
+				for (Train train : trainArray) {
+					trainDropdown.addItem(train.getName());
+				}
+				windowPanel.add(new JLabel("Select Train:"));
+				windowPanel.add(trainDropdown);
+	
+				// Show the input dialog
+				int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Remove Train", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE, customIcon);
+	
+				// If the user clicks OK, retrieve the values from the fields
+				if (result == JOptionPane.OK_OPTION) {
+					for (int i = 0; i < trainArray.size(); i++) {
+						if(String.valueOf(trainDropdown.getSelectedItem()).equals(trainArray.get(i).getName())) {
+							trainArray.get(i).prepareForRemoval();
+							trainArray.remove(i);
+						}
+					}
+					
+					if(trainDropdown.getSelectedItem() != null) {
+						// Correct entry, create new train for entered inputs
+						updateTrains();
+					} else {
+						// Error in entry, try again
+						JOptionPane.showMessageDialog(null, "INVALID ENTRY\nPlease select a train.", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR\nNo trains to remove.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		});
 
 		setTrainDirectionButton.addActionListener(e -> {
@@ -238,16 +296,77 @@ public class MRRDispatchFrame extends JFrame {
 			debug = !debug;
 		});
 		
+		githubButton.addActionListener(e -> {
+		    // Specify the URL you want to redirect the user to
+		    String redirectURL = "https://github.com/tec314/MRR-Dispatch";
+		    
+		    // Get the default desktop browser and open the URL
+		    try {
+		        Desktop.getDesktop().browse(new URI(redirectURL));
+		    } catch (IOException ex) {
+		        ex.printStackTrace();
+		        // Handle IO exceptions here
+		    } catch (URISyntaxException ex) {
+		        ex.printStackTrace();
+		        // Handle URI syntax exceptions here
+		    }
+		});
+		
 		add(optionsPanel, BorderLayout.NORTH);
 		add(mapPanel, BorderLayout.CENTER);
 		add(coordLabel, BorderLayout.SOUTH);
 		
-		initialization(mapPanel);
-		setNodeConnections();
+		mapLabeling(mapPanel); // Displays information about routes, track numbering, and interlockings
+		initialization(mapPanel); // Initializes all objects
+		setNodeConnections(); // Connects all nodes together
 		
 		System.out.println("DIM: " + mapPanel.getWidth() + ", " + mapPanel.getHeight());
 	}
-
+	
+	// Map labeling (interlockings, storage tracks, etc.)
+	void mapLabeling(JPanel panel) {
+		JLabel interlock1 = new JLabel("CRID INTERLOCKING");
+		interlock1.setBounds(700, 175, 200, 30); // Set bounds (x, y, width, height)
+		interlock1.setForeground(Color.WHITE);
+	    panel.add(interlock1);
+	    
+	    JLabel interlock2 = new JLabel("ALB INTERLOCKING");
+	    interlock2.setBounds(390, 690, 200, 30); // Set bounds (x, y, width, height)
+	    interlock2.setForeground(Color.WHITE);
+	    panel.add(interlock2);
+	    
+	    JLabel interlock3 = new JLabel("BUD INTERLOCKING");
+	    interlock3.setBounds(1330, 500, 200, 30); // Set bounds (x, y, width, height)
+	    interlock3.setForeground(Color.WHITE);
+	    panel.add(interlock3);
+	    
+	    JLabel cutoff = new JLabel("EAST PENN CUTOFF");
+	    cutoff.setBounds(750, 780, 200, 30); // Set bounds (x, y, width, height)
+	    cutoff.setForeground(Color.WHITE);
+	    panel.add(cutoff);
+	    
+	    JLabel trk1 = new JLabel("TRK1");
+	    trk1.setBounds(260, 210, 200, 30); // Set bounds (x, y, width, height)
+	    trk1.setForeground(Color.WHITE);
+	    panel.add(trk1);
+	    
+	    JLabel trk2 = new JLabel("TRK2");
+	    trk2.setBounds(260, 280, 200, 30); // Set bounds (x, y, width, height)
+	    trk2.setForeground(Color.WHITE);
+	    panel.add(trk2);
+	    
+	    JLabel storage1 = new JLabel("STORAGE1");
+	    storage1.setBounds(750, 660, 200, 30); // Set bounds (x, y, width, height)
+	    storage1.setForeground(Color.WHITE);
+	    panel.add(storage1);
+	    
+	    JLabel storage2 = new JLabel("STORAGE2");
+	    storage2.setBounds(540, 480, 200, 30); // Set bounds (x, y, width, height)
+	    storage2.setForeground(Color.WHITE);
+	    panel.add(storage2);
+	}	
+	
+	// Initialize major map objects (signals, switches, nodes)
 	void initialization(JPanel panel) {
 		int width = panel.getWidth();
 		int height = panel.getHeight();
@@ -264,45 +383,31 @@ public class MRRDispatchFrame extends JFrame {
 		
 		// Signal Initializations
 		SIG_201A = new Signal((float) (510), (float) (height / 4), "SIG-201A", "DOUBLE_HEAD", "-->", "CW", SW5, false, panel);
-		signalArray.add(SIG_201A);
 		SIG_201B = new Signal((float) (510), (float) (height / 3.2), "SIG-201B", "SINGLE_HEAD", "-->", "CW", null,
 				false, panel);
-		signalArray.add(SIG_201B);
 		SIG_202A = new Signal((float) (910), (float) (height / 4), "SIG-202A", "SINGLE_HEAD", "<--", "CCW", null,
 				false, panel);
-		signalArray.add(SIG_202A);
 		SIG_202B = new Signal((float) (910), (float) (height / 3.2), "SIG-202B", "DOUBLE_HEAD", "<--", "CCW", SW4,
 				false, panel);
-		signalArray.add(SIG_202B);
 		SIG_203A = new Signal((float) (1480), (float) (height / 4), "SIG-203A", "DOUBLE_HEAD", "-->", "CW", SW3, false, panel);
-		signalArray.add(SIG_203A);
 		SIG_203B = new Signal((float) (1480), (float) (height / 3.2), "SIG-203B", "SINGLE_HEAD", "-->", "CW", null,
 				false, panel);
-		signalArray.add(SIG_203B);
 		SIG_204A = new Signal((float) (450), (float) (height / 1.6), "SIG-204A", "DOUBLE_HEAD", "-->", "CCW", SW1,
 				false, panel);
-		signalArray.add(SIG_204A);
 		SIG_204B = new Signal((float) (450), (float) (height / 1.78), "SIG-204B", "SINGLE_HEAD", "-->", "CCW", null,
 				false, panel);
-		signalArray.add(SIG_204B);
 		SIG_205A = new Signal((float) (730), (float) (height / 1.6), "SIG-205A", "SINGLE_HEAD", "<--", "CW", null,
 				false, panel);
-		signalArray.add(SIG_205A);
 		SIG_205B = new Signal((float) (730), (float) (height / 1.78), "SIG-205B", "SINGLE_HEAD", "<--", "CW", null,
 				false, panel);
-		signalArray.add(SIG_205B);
 		SIG_206A = new Signal((float) (1200), (float) (height / 1.6), "SIG-206A", "SINGLE_HEAD", "-->", "CCW", null,
 				false, panel);
-		signalArray.add(SIG_206A);
 		SIG_206B = new Signal((float) (1200), (float) (height / 1.78), "SIG-206B", "SINGLE_HEAD", "-->", "CCW", null,
 				false, panel);
-		signalArray.add(SIG_206B);
 		SIG_207A = new Signal((float) (790), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
 				"SIG-207A", "SINGLE_HEAD", "<--", "CW", null, false, panel);
-		signalArray.add(SIG_207A);
 		SIG_208A = new Signal((float) (1130), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
 				"SIG-208A", "SINGLE_HEAD", "-->", "CCW", null, false, panel);
-		signalArray.add(SIG_208A);
 		buffer1 = new Signal((float) (width / 2), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, true, panel); // FOR END OF FREIGHT STORAGE TRACK
 		buffer2 = new Signal((float) (width / 2.7), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
@@ -325,10 +430,9 @@ public class MRRDispatchFrame extends JFrame {
 				false, panel);
 		
 	}
-
+	
+	// Create links between nodes on map (hard coding)
 	void setNodeConnections() {
-		// Bleh, node connection hard code >:(
-
 		// setNextAndPreviousNode = next node going clockwise & prev node going counterclockwise
 		node1.setNextAndPreviousNode(SIG_201A.signalNode);
 		node2.setNextAndPreviousNode(SIG_201B.signalNode);
@@ -368,6 +472,9 @@ public class MRRDispatchFrame extends JFrame {
 		repaint();
 	}
 	
+
+	
+	// Paint refreshing code
 	private class DrawPanel extends JPanel {
 		MouseHandler mouse = new MouseHandler();
 		
@@ -401,7 +508,6 @@ public class MRRDispatchFrame extends JFrame {
 			
 			for (Switch sw : switchArray) {
 				sw.update();
-				sw.render(g2d);
 				repaint();
 			}
 			
@@ -424,9 +530,38 @@ public class MRRDispatchFrame extends JFrame {
 				train.render();
 				repaint();
 			}
+			
+			g2d.setColor(Color.WHITE);
+			g2d.drawString("Active Trains", getWidth() - 750, 20);
+			g2d.drawString("Name", getWidth() - 600, 20);
+			g2d.drawString("Type", getWidth() - 500, 20);
+			g2d.drawString("Direction", getWidth() - 400, 20);
+			g2d.drawString("_________________________________________________________", getWidth() - 750, 24);
+			// Updates current trains to be displayed
+			for (int i = 0; i < trainArray.size(); i++) {
+				g2d.setColor(Color.WHITE);
+		        g2d.drawString(trainArray.get(i).getName(), getWidth() - 600, 40 + i * 20); 
+		        
+		        if(trainArray.get(i).getType().equals("Passenger")) {
+		        	g2d.setColor(Color.CYAN);
+				} else if(trainArray.get(i).getType().equals("Freight")) {
+					g2d.setColor(Color.ORANGE);
+				} else {
+					g2d.setColor(Color.RED);
+				}
+		        g2d.drawString(trainArray.get(i).getType(), getWidth() - 500, 40 + i * 20); 
+		        
+		        if(trainArray.get(i).getDirection().equals("CW")) {
+		        	g2d.setColor(Color.MAGENTA);
+				} else {
+					g2d.setColor(Color.GREEN);
+				}
+		        g2d.drawString(trainArray.get(i).getDirection(), getWidth() - 400, 40 + i * 20); 
+		    }
 		}
 	}
 	
+	// Mouse events
 	private class MouseHandler extends MouseAdapter implements MouseMotionListener {
 		public void mousePressed(MouseEvent event) {}
 		public void mouseReleased(MouseEvent event) {}
