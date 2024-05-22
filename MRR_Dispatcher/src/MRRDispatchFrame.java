@@ -4,14 +4,19 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
@@ -75,6 +80,9 @@ public class MRRDispatchFrame extends JFrame {
 	public static ArrayList<Train> trainArray = new ArrayList<Train>();
 	
 	public static Boolean debug = false;
+	public static Boolean isFullscreen = false;
+	private GraphicsDevice device;
+	private Rectangle windowedBounds;
 	
 	public JPanel optionsPanel = new JPanel(new GridLayout()); // 6 rows, 2 columns
 	public JPanel mapPanel = new DrawPanel();
@@ -114,9 +122,13 @@ public class MRRDispatchFrame extends JFrame {
 
 		// Add tool items to tools drop-down
 		toolsDropdown.add(debugToggleButton);
+		
+		// Create toolsButton menu
+		JMenu windowDropdown = new JMenu("Window");
+		JMenuItem fullscreenToggleButton = new JMenuItem("Toggle Fullscreen");
 
-		// Add toolsButton menu to menu bar
-		menuBar.add(toolsDropdown);
+		// Add tool items to tools drop-down
+		windowDropdown.add(fullscreenToggleButton);
 
 		JMenu helpDropdown = new JMenu("Help");
 		JMenuItem aboutButton = new JMenuItem("About");
@@ -130,6 +142,7 @@ public class MRRDispatchFrame extends JFrame {
 		// Add menus to the menu bar
 		menuBar.add(actionDropdown);
 		menuBar.add(toolsDropdown);
+		menuBar.add(windowDropdown);
 		menuBar.add(helpDropdown);
 		
 		// Set the menu bar for the frame
@@ -183,7 +196,7 @@ public class MRRDispatchFrame extends JFrame {
 
 			JRadioButton clockwiseButton = new JRadioButton("CW");
 			JRadioButton counterclockwiseButton = new JRadioButton("CCW");
-			JPanel directionButtons = new JPanel(new GridLayout(1, 2)); // 6 rows, 2 columns
+			JPanel directionButtons = new JPanel(new GridLayout(1, 2)); 
 
 			ButtonGroup trainDirectionGroup = new ButtonGroup();
 			trainDirectionGroup.add(clockwiseButton);
@@ -232,12 +245,17 @@ public class MRRDispatchFrame extends JFrame {
 					direction = "CCW";
 				} 
 				
-				if(trainName != null && trainType != null && direction != null && startingSignal != null && numberOfEquipment > 0 && priority > 0) {
-					// Correct entry, create new train for entered inputs
+				// Starting node is already occupied by the pathTracer for another train
+				if(startingSignal.isOccupied()) {
+					JOptionPane.showMessageDialog(null, "ERROR\nAlready occupied by another train's routing!", "Error", JOptionPane.ERROR_MESSAGE);
+				} 
+				// Correct entry, create new train for entered inputs
+				else if(trainName != null && trainType != null && direction != null && startingSignal != null && numberOfEquipment > 0 && priority > 0) {
 					trainArray.add(new Train (trainName, trainType, numberOfEquipment, priority, direction, startingSignal, mapPanel));
 					updateTrains();
-				} else {
-					// Error in entry, try again
+				} 
+				// Error in entry, try again
+				else {
 					JOptionPane.showMessageDialog(null, "INVALID ENTRY\nPlease fill in all fields correctly.", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -290,6 +308,63 @@ public class MRRDispatchFrame extends JFrame {
 		setTrainDirectionButton.addActionListener(e -> {
 			// Add action for Action 3
 			System.out.println("Action 3 selected");
+			if(!trainArray.isEmpty()) {
+				// Add action for Action 1
+				System.out.println("Action 1 selected");
+				JPanel windowPanel = new JPanel(new GridLayout(6, 2)); // 6 rows, 2 columns
+				windowPanel.setSize(800, 800);
+				ImageIcon customIcon = new ImageIcon(Main.class.getResource("/icon/septa_icon.png").getPath());
+				Image image = customIcon.getImage(); // transform it
+				Image newimg = image.getScaledInstance(80, 80, java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
+				customIcon = new ImageIcon(newimg); // transform it back
+	
+				JComboBox<String> trainDropdown = new JComboBox<>();
+				for (Train train : trainArray) {
+					trainDropdown.addItem(train.getName());
+				}
+				windowPanel.add(new JLabel("Select Train:"));
+				windowPanel.add(trainDropdown);
+				
+				JRadioButton clockwiseButton = new JRadioButton("CW");
+				JRadioButton counterclockwiseButton = new JRadioButton("CCW");
+				JPanel directionButtons = new JPanel(new GridLayout(1, 2)); 
+				windowPanel.add(new JLabel("New Train Direction:"));
+				directionButtons.add(clockwiseButton);
+				directionButtons.add(counterclockwiseButton);
+				windowPanel.add(directionButtons);
+	
+				// Show the input dialog
+				int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Remove Train", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE, customIcon);
+	
+				// If the user clicks OK, retrieve the values from the fields
+				if (result == JOptionPane.OK_OPTION) {
+					String direction = null;
+					Train selectedTrain = null;
+					for (int i = 0; i < trainArray.size(); i++) {
+						if(String.valueOf(trainDropdown.getSelectedItem()).equals(trainArray.get(i).getName())) {
+							selectedTrain = trainArray.get(i);
+						}
+					}
+					
+					if (clockwiseButton.isSelected()) {
+						direction = "CW";
+					} else if (counterclockwiseButton.isSelected()) {
+						direction = "CCW";
+					} 
+					
+					if(trainDropdown.getSelectedItem() != null && direction != null) {
+						// Correct entry, create new train for entered inputs
+						selectedTrain.updateDirection(direction);
+						updateTrains();
+					} else {
+						// Error in entry, try again
+						JOptionPane.showMessageDialog(null, "INVALID ENTRY\nPlease select a train.", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR\nNo trains to update direction.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		});
 
 		debugToggleButton.addActionListener(e -> {
@@ -312,59 +387,39 @@ public class MRRDispatchFrame extends JFrame {
 		    }
 		});
 		
+		device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		fullscreenToggleButton.addActionListener(e -> {
+	        if (isFullscreen) {
+	            // Exit fullscreen
+	            device.setFullScreenWindow(null);  // Exit fullscreen
+	            setVisible(false);  // Hide the frame temporarily
+	            dispose();  // Make the frame non-displayable
+	            setUndecorated(false);  // Restore window decorations
+	            setBounds(windowedBounds);  // Restore the previous window bounds
+	            setVisible(true);  // Make the frame visible again
+	        } else {
+	            // Enter fullscreen
+	            windowedBounds = getBounds();  // Store the current window bounds
+	            setVisible(false);  // Hide the frame temporarily
+	            dispose();  // Make the frame non-displayable
+	            setUndecorated(true);  // Remove window decorations
+	            setVisible(true);  // Make the frame visible again
+	            device.setFullScreenWindow(this);  // Enter fullscreen
+	        }
+	        isFullscreen = !isFullscreen;
+	        revalidate();
+	        repaint();
+		});
+		
 		add(optionsPanel, BorderLayout.NORTH);
 		add(mapPanel, BorderLayout.CENTER);
 		add(coordLabel, BorderLayout.SOUTH);
 		
-		mapLabeling(mapPanel); // Displays information about routes, track numbering, and interlockings
 		initialization(mapPanel); // Initializes all objects
 		setNodeConnections(); // Connects all nodes together
 		
 		System.out.println("DIM: " + mapPanel.getWidth() + ", " + mapPanel.getHeight());
 	}
-	
-	// Map labeling (interlockings, storage tracks, etc.)
-	void mapLabeling(JPanel panel) {
-		JLabel interlock1 = new JLabel("CRID INTERLOCKING");
-		interlock1.setBounds(700, 175, 200, 30); // Set bounds (x, y, width, height)
-		interlock1.setForeground(Color.WHITE);
-	    panel.add(interlock1);
-	    
-	    JLabel interlock2 = new JLabel("ALB INTERLOCKING");
-	    interlock2.setBounds(390, 690, 200, 30); // Set bounds (x, y, width, height)
-	    interlock2.setForeground(Color.WHITE);
-	    panel.add(interlock2);
-	    
-	    JLabel interlock3 = new JLabel("BUD INTERLOCKING");
-	    interlock3.setBounds(1330, 500, 200, 30); // Set bounds (x, y, width, height)
-	    interlock3.setForeground(Color.WHITE);
-	    panel.add(interlock3);
-	    
-	    JLabel cutoff = new JLabel("EAST PENN CUTOFF");
-	    cutoff.setBounds(750, 780, 200, 30); // Set bounds (x, y, width, height)
-	    cutoff.setForeground(Color.WHITE);
-	    panel.add(cutoff);
-	    
-	    JLabel trk1 = new JLabel("TRK1");
-	    trk1.setBounds(260, 210, 200, 30); // Set bounds (x, y, width, height)
-	    trk1.setForeground(Color.WHITE);
-	    panel.add(trk1);
-	    
-	    JLabel trk2 = new JLabel("TRK2");
-	    trk2.setBounds(260, 280, 200, 30); // Set bounds (x, y, width, height)
-	    trk2.setForeground(Color.WHITE);
-	    panel.add(trk2);
-	    
-	    JLabel storage1 = new JLabel("STORAGE1");
-	    storage1.setBounds(750, 660, 200, 30); // Set bounds (x, y, width, height)
-	    storage1.setForeground(Color.WHITE);
-	    panel.add(storage1);
-	    
-	    JLabel storage2 = new JLabel("STORAGE2");
-	    storage2.setBounds(540, 480, 200, 30); // Set bounds (x, y, width, height)
-	    storage2.setForeground(Color.WHITE);
-	    panel.add(storage2);
-	}	
 	
 	// Initialize major map objects (signals, switches, nodes)
 	void initialization(JPanel panel) {
@@ -410,7 +465,7 @@ public class MRRDispatchFrame extends JFrame {
 				"SIG-208A", "SINGLE_HEAD", "-->", "CCW", null, false, panel);
 		buffer1 = new Signal((float) (width / 2), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, true, panel); // FOR END OF FREIGHT STORAGE TRACK
-		buffer2 = new Signal((float) (width / 2.7), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
+		buffer2 = new Signal((float) (width / 2.8), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, true, panel);
 		
 		// Standalone Node Initializations
@@ -472,8 +527,6 @@ public class MRRDispatchFrame extends JFrame {
 		repaint();
 	}
 	
-
-	
 	// Paint refreshing code
 	private class DrawPanel extends JPanel {
 		MouseHandler mouse = new MouseHandler();
@@ -531,33 +584,89 @@ public class MRRDispatchFrame extends JFrame {
 				repaint();
 			}
 			
+			activeTrainLabel(g2d);
+			mapLabeling(g2d);
+			debugTerminal(g2d);
+		}
+	}
+	
+	// Current active train status
+	void activeTrainLabel(Graphics2D g2d) {
+		g2d.setColor(Color.WHITE);
+		g2d.drawString("Active Trains", getWidth() - 750, 20);
+		g2d.drawString("Name", getWidth() - 600, 20);
+		g2d.drawString("Type", getWidth() - 500, 20);
+		g2d.drawString("Direction", getWidth() - 400, 20);
+		g2d.drawString("Is Loop?", getWidth() - 300, 20);
+		g2d.drawString("________________________________________________________________________", getWidth() - 750, 24);
+
+		// Updates current train info to be displayed
+		for (int i = 0; i < trainArray.size(); i++) {
+			g2d.setColor(trainArray.get(i).getGeneratedPath().getPathColor());
+			g2d.drawString("—", getWidth() - 660, 40 + i * 20); 
+			 
 			g2d.setColor(Color.WHITE);
-			g2d.drawString("Active Trains", getWidth() - 750, 20);
-			g2d.drawString("Name", getWidth() - 600, 20);
-			g2d.drawString("Type", getWidth() - 500, 20);
-			g2d.drawString("Direction", getWidth() - 400, 20);
-			g2d.drawString("_________________________________________________________", getWidth() - 750, 24);
-			// Updates current trains to be displayed
-			for (int i = 0; i < trainArray.size(); i++) {
-				g2d.setColor(Color.WHITE);
-		        g2d.drawString(trainArray.get(i).getName(), getWidth() - 600, 40 + i * 20); 
-		        
-		        if(trainArray.get(i).getType().equals("Passenger")) {
-		        	g2d.setColor(Color.CYAN);
-				} else if(trainArray.get(i).getType().equals("Freight")) {
-					g2d.setColor(Color.ORANGE);
-				} else {
-					g2d.setColor(Color.RED);
-				}
-		        g2d.drawString(trainArray.get(i).getType(), getWidth() - 500, 40 + i * 20); 
-		        
-		        if(trainArray.get(i).getDirection().equals("CW")) {
-		        	g2d.setColor(Color.MAGENTA);
-				} else {
-					g2d.setColor(Color.GREEN);
-				}
-		        g2d.drawString(trainArray.get(i).getDirection(), getWidth() - 400, 40 + i * 20); 
-		    }
+	        g2d.drawString(trainArray.get(i).getName(), getWidth() - 600, 40 + i * 20); 
+	        
+	        if(trainArray.get(i).getType().equals("Passenger")) {
+	        	g2d.setColor(new Color(43, 163, 255));
+			} else if(trainArray.get(i).getType().equals("Freight")) {
+				g2d.setColor(Color.ORANGE);
+			} else {
+				g2d.setColor(Color.RED);
+			}
+	        g2d.drawString(trainArray.get(i).getType(), getWidth() - 500, 40 + i * 20); 
+	        
+	        g2d.setColor(Color.MAGENTA);
+	        if(trainArray.get(i).getDirection().equals("CW")) {
+	        	g2d.drawString(trainArray.get(i).getDirection() + "    ⭮", getWidth() - 400, 40 + i * 20);
+			} else {
+				g2d.drawString(trainArray.get(i).getDirection() + "    ⭯", getWidth() - 400, 40 + i * 20);
+			}
+	        
+	        if(trainArray.get(i).getGeneratedPath().isLoop()) {
+	        	g2d.setColor(Color.GREEN);
+	        	g2d.drawString("LOOP", getWidth() - 300, 40 + i * 20);
+			} else {
+				g2d.setColor(Color.RED);
+				g2d.drawString("NO LOOP", getWidth() - 300, 40 + i * 20);
+			}
+	    }	
+	}
+	
+	// Map labeling (interlockings, storage tracks, information, etc.)
+	void mapLabeling(Graphics2D g2d) {
+		g2d.setColor(Color.WHITE);
+		g2d.drawString("Model Railroad Dispatching Software", 10, 20);
+		g2d.drawString("2024 | Pre-alpha", 10, 35);
+		
+		//g2d.drawString("CRID INTERLOCKING", getWidth()/3, getHeight()/6); 
+		//g2d.drawString("ALB INTERLOCKING", getWidth()/5, 2*getHeight()/3); 
+		//g2d.drawString("BUD INTERLOCKING", 7*getWidth()/11, 7*getHeight()/15); 
+		//g2d.drawString("____ STATION", getWidth()/2, 10*getHeight()/21); 
+		//g2d.drawString("EAST PENN CUTOFF", 13*getWidth()/30, 3*getHeight()/4);
+		g2d.drawString("TRK1", getWidth()/7, 7*getHeight()/33); 
+		g2d.drawString("TRK2", getWidth()/7, 14*getHeight()/51); 
+		g2d.drawString("STORAGE1", 13*getWidth()/30, 5*getHeight()/8); 
+		g2d.drawString("STORAGE2", 3*getWidth()/10, 13*getHeight()/30); 
+	}	
+	
+	// Debug Terminal (displays information sent and received)
+	void debugTerminal(Graphics2D g2d) {
+		g2d.setColor(Color.WHITE);
+		g2d.drawString("Debug Terminal", getWidth() - 500, 830);
+		g2d.drawString("_________________________________________________________", getWidth() - 500, 834);
+		for (int i = 0; i < SendRecieve.debugTerminal.size(); i++) {
+			g2d.setColor(Color.WHITE);
+			g2d.drawString(SendRecieve.debugTerminal.get(i).substring(0, 25), getWidth() - 500, 850 + i * 20);
+			g2d.drawString(SendRecieve.debugTerminal.get(i).substring(28), getWidth() - 280, 850 + i * 20);
+			String d = SendRecieve.debugTerminal.get(i).substring(25, 28);
+			if(d.equals("OUT")) {
+				g2d.setColor(Color.ORANGE);
+			} else {
+				g2d.setColor(Color.CYAN);
+			}
+			g2d.drawString(d, getWidth() - 330, 850 + i * 20);
 		}
 	}
 	

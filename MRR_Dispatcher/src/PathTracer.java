@@ -17,7 +17,7 @@ class pathTracer {
 
 	// Drawing path on screen
 	ArrayList<Node> nodePath = new ArrayList<Node>();
-	ArrayList<Node> blockPath = new ArrayList<Node>();
+	ArrayList<Node> currentBlockPath = new ArrayList<Node>();
 	ArrayList<Node> forwSignalPath = new ArrayList<Node>();
 	ArrayList<Node> oppSignalPath = new ArrayList<Node>();
 
@@ -54,13 +54,13 @@ class pathTracer {
 		// MULTI TRAIN + ISSUES FOR SIGNAL DISPLAY!!!!!!!!!!
 		for (Node node : forwSignalPath) {
 			if (node.getSignal() != null) {
-				// forwSignalPath.get(i).thisSignal.signalState("STOP");
+				node.getSignal().signalState("STOP");
 			}
 		}
 
 		for (Node node : oppSignalPath) {
 			if (node.getSignal() != null) {
-				// oppSignalPath.get(i).thisSignal.signalState("STOP");
+				node.getSignal().signalState("STOP");
 			}
 		}
 
@@ -206,9 +206,9 @@ class pathTracer {
 
 	// Complete possible path for train to take (renders first)
 	void renderPath() {
-		for (int i = 0; i < nodePath.size(); i++) {
-			nodePath.get(i).update();
-			nodePath.get(i).renderConnections(panel.getGraphics(), pathColor, pathDirection);
+		for (Node node : nodePath) {
+			node.update();
+			node.renderConnections(panel.getGraphics(), pathColor, pathDirection);
 		}
 	}
 
@@ -217,34 +217,42 @@ class pathTracer {
 	// can detect where a train is)
 	void renderBlock() {
 		Boolean findBlockEnd = true;
-		blockPath.clear();
+		for (Node node : currentBlockPath) {
+			// Current block of the train is colored
+			node.isArrowLocation(false);
+		}
+		currentBlockPath.clear();
 
-		for (int i = 0; i < nodePath.size(); i++) {
-			if (findBlockEnd && nodePath.get(i).getSignal() != null && nodePath.get(i) != startNode) {
-				blockPath.add(nodePath.get(i)); // This last entry is the ending signal of the current block
+		for (Node node : nodePath) {
+			if (findBlockEnd && node.getSignal() != null && node != startNode) {
+				currentBlockPath.add(node); // This last entry is the ending signal of the current block
 
 				findBlockEnd = false;
 			} else if (findBlockEnd) {
-				blockPath.add(nodePath.get(i));
+				currentBlockPath.add(node);
 			}
 		}
-
-		for (int i = 0; i < blockPath.size() - 1; i++) {
-			blockPath.get(i).update();
-			blockPath.get(i).renderConnections(panel.getGraphics(), Color.GREEN, pathDirection);
+		for (int i = 0; i < currentBlockPath.size() - 1; i++) {
+			// Current block of the train is colored
+			currentBlockPath.get(i).update();
+			currentBlockPath.get(i).renderConnections(panel.getGraphics(), Color.RED, pathDirection);
 		}
+		
+		int i = currentBlockPath.size() - 1;
+		currentBlockPath.get(i).isArrowLocation(true);
+		currentBlockPath.get(i).setPathDirection(pathDirection);
 	}
 
-	String isLoop() {
-		if (completeLoop) {
-			return "LOOP";
-		} else {
-			return "NO LOOP";
-		}
+	Boolean isLoop() {
+		return completeLoop;
 	}
 
 	Boolean cannotCreate() {
 		return cannotCreatePath;
+	}
+	
+	Color getPathColor() {
+		return pathColor;
 	}
 
 	void setPathDirection(String dir) {

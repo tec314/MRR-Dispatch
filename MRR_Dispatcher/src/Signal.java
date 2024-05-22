@@ -119,6 +119,8 @@ public class Signal {
 					g2d.drawString(signalName, (int) signalX - 120, (int) signalY + 5);
 				}
 			}
+			g2d.setColor(Color.WHITE);
+			g2d.drawLine((int) signalNode.getX(), (int) signalNode.getY() + 5, (int) signalNode.getX(), (int) signalNode.getY() - 5);
 		}
 	}
 	/*
@@ -180,4 +182,8 @@ public class Signal {
 	String getSignalFlow() {
 		return signalFlow;
 	} 
+	
+	String getSignalDirection() {
+		return signalDirection;
+	}
 }

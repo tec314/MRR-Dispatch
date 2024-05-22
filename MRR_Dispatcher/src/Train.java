@@ -20,7 +20,7 @@ class Train {
     this.direction = d;
     this.panel = panel;
     
-    path = new pathTracer(start, priority, name, Color.BLUE, panel);
+    path = new pathTracer(start, priority, name, Color.GREEN, panel);
     path.setPathDirection(direction);
   }
   
@@ -46,6 +46,10 @@ class Train {
   
   String getName() {
     return name;
+  }
+  
+  pathTracer getGeneratedPath() {
+	  return path;
   }
   
   String getType() {

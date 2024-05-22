@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class SendRecieve extends JFrame {
@@ -9,6 +11,8 @@ public class SendRecieve extends JFrame {
     private static String message = "";
     private static int serialDelayTime = 300;
     private static Node detectedSignal;
+    
+    public static ArrayList<String> debugTerminal = new ArrayList<String>();
 
     // Constructor
     public SendRecieve() {
@@ -17,7 +21,20 @@ public class SendRecieve extends JFrame {
 
     // Simulating send message function
     public static void sendMessage(String m) {
+    	// Message sent through serial
         System.out.println("SENDING MESSAGE: " + m);
+        
+        
+        // Get the current time
+        LocalDateTime now = LocalDateTime.now();
+        // Define the format for the timestamp
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        // Format the current time
+        String timestamp = now.format(formatter);
+        debugTerminal.add(0, "[" + timestamp + "]" + "OUT" + "msg:   " + m);
+        if(debugTerminal.size() > 6) {
+        	debugTerminal.remove(6);
+        }
         // Simulate delay
         try {
             Thread.sleep(serialDelayTime);
