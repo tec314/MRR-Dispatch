@@ -22,11 +22,14 @@ public class Switch {
 	Node entryNode;
 	Node closedNode;
 	Node thrownNode;
+	SerialWriter writer;
 
 	JButton throwSwitchButton;
+	SerialWriter serial;
 
 	// Constructor
-	public Switch(float x, float y, int t, int c, String ed, String bl, String nm, JPanel panel) {
+	public Switch(SerialWriter s, float x, float y, int t, int c, String ed, String bl, String nm, JPanel panel) {
+		this.serial = s;
 		this.panel = panel;
 		width = panel.getWidth();
 		height = panel.getHeight();
@@ -97,7 +100,7 @@ public class Switch {
 		// SEND A PULSE TO CHILD ARDUINOS TELLING THIS SWITCH TO FLIP
 
 		if (thrown) {
-			SendRecieve.sendMessage(name + "_" + "THROWN");
+			serial.writeData(name + "_" + "THROWN");
 
 			if (entryDirection.equals("CW")) {
 				entryNode.setNextNode(thrownNode);
@@ -109,7 +112,7 @@ public class Switch {
 				closedNode.setNextNode(null);
 			}
 		} else {
-			SendRecieve.sendMessage(name + "_" + "OPEN");
+			serial.writeData(name + "_" + "OPEN");
 
 			if (entryDirection.equals("CW")) {
 				entryNode.setNextNode(closedNode);

@@ -19,10 +19,12 @@ public class Signal {
 
 	Node signalNode;
 	Switch signalSwitch;
+	SerialWriter serial;
 
 	// Constructor
-	public Signal(float x, float y, String name, String type, String direction, String flow, Switch sw, Boolean buffer,
+	public Signal(SerialWriter s, float x, float y, String name, String type, String direction, String flow, Switch sw, Boolean buffer,
 			JPanel panel) {
+		this.serial = s;
 		this.panel = panel;
 		int width = panel.getWidth();
 		int height = panel.getHeight();
@@ -148,26 +150,27 @@ public class Signal {
         if (s.equals("STOP")) {
         	topHeadColor = Color.RED;
             bottomHeadColor = Color.BLACK;
-            SendRecieve.sendMessage(signalName + "_STOP"); // Sends a message for Arduino with signal to update
+            serial.writeData(signalName + "_STOP"); // Sends a message for Arduino with signal to update
+            
         } else if (s.equals("APPROACH")) {
         	if(signalSwitch != null && signalSwitch.isThrown()) {
         		topHeadColor = Color.RED;
                 bottomHeadColor = Color.ORANGE;
-                SendRecieve.sendMessage(signalName + "_SLOW-APPR");
+                serial.writeData(signalName + "_SLOW-APPR");
         	} else {
         		topHeadColor = Color.ORANGE;
                 bottomHeadColor = Color.BLACK;
-                SendRecieve.sendMessage(signalName + "_APPROACH");
+                serial.writeData(signalName + "_APPROACH");
         	}
         } else if (s.equals("CLEAR")) {
         	if(signalSwitch != null && signalSwitch.isThrown()) {
         		topHeadColor = Color.RED;
                 bottomHeadColor = Color.GREEN;
-                SendRecieve.sendMessage(signalName + "_MED-CLEAR");
+                serial.writeData(signalName + "_MED-CLEAR");
         	} else {
         		topHeadColor = Color.GREEN;
                 bottomHeadColor = Color.BLACK;
-                SendRecieve.sendMessage(signalName + "_CLEAR");
+                serial.writeData(signalName + "_CLEAR");
         	}
         } else {
         	topHeadColor = Color.BLACK;

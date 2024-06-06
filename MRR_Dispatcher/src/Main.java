@@ -3,6 +3,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.*;
 
 public class Main {
+	
     public static void main(String[] args)
     {
     	/*
@@ -19,6 +20,7 @@ public class Main {
 		}
         titleFrame.setVisible(false);
         */
+
         MRRDispatchFrame applicationFrame = new MRRDispatchFrame();
         applicationFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         applicationFrame.setSize(1920,1080);

@@ -88,8 +88,11 @@ public class MRRDispatchFrame extends JFrame {
 	public JPanel mapPanel = new DrawPanel();
 	public JLabel coordLabel = new JLabel();
 	
+	public static SerialWriter serial; // Serial object
+	
 	public MRRDispatchFrame() {
 		super("MRR Dispatcher");
+		serial = new SerialWriter("COM7"); // Main serial object for Arduino communication, set to COM7 by default
 		
 		setLayout(new BorderLayout());
 		optionsPanel.setBackground(Color.WHITE);
@@ -119,9 +122,11 @@ public class MRRDispatchFrame extends JFrame {
 		// Create toolsButton menu
 		JMenu toolsDropdown = new JMenu("Tools");
 		JMenuItem debugToggleButton = new JMenuItem("Toggle Debug Mode");
+		JMenuItem setPortButton = new JMenuItem("Set Master Arduino Port");
 
 		// Add tool items to tools drop-down
 		toolsDropdown.add(debugToggleButton);
+		toolsDropdown.add(setPortButton);
 		
 		// Create toolsButton menu
 		JMenu windowDropdown = new JMenu("Window");
@@ -427,45 +432,45 @@ public class MRRDispatchFrame extends JFrame {
 		int height = panel.getHeight();
 		
 		// Switch Initializations
-		SW6 = new Switch((float) (width / 3.78), (float) (height / 1.78), 330, 0, "CCW", "NW", "SW6", panel);
-		SW5 = new Switch((float) (width / 3), (float) (height / 4), 30, 0, "CW", "NW", "SW5", panel);
-		SW4 = new Switch((float) (width / 3 + Math.cos(Math.toRadians(30)) * width / 16),
+		SW6 = new Switch(serial, (float) (width / 3.78), (float) (height / 1.78), 330, 0, "CCW", "NW", "SW6", panel);
+		SW5 = new Switch(serial, (float) (width / 3), (float) (height / 4), 30, 0, "CW", "NW", "SW5", panel);
+		SW4 = new Switch(serial, (float) (width / 3 + Math.cos(Math.toRadians(30)) * width / 16),
 				(float) (height / 3.2), 210, 180, "CCW", "SE", "SW4", panel);
-		SW3 = new Switch((float) (width - width / 3.5), (float) (height / 1.6), 150, 180, "CW", "SE", "SW3", panel);
-		SW2 = new Switch((float) (width / 3.5 + Math.cos(Math.toRadians(30)) * width / 16),
+		SW3 = new Switch(serial, (float) (width - width / 3.5), (float) (height / 1.6), 150, 180, "CW", "SE", "SW3", panel);
+		SW2 = new Switch(serial, (float) (width / 3.5 + Math.cos(Math.toRadians(30)) * width / 16),
 				(float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8), 0, 30, "CCW", "SW", "SW2", panel);
-		SW1 = new Switch((float) (width / 3.5), (float) (height / 1.6), 30, 0, "CCW", "NE", "SW1", panel);
+		SW1 = new Switch(serial, (float) (width / 3.5), (float) (height / 1.6), 30, 0, "CCW", "NE", "SW1", panel);
 		
 		// Signal Initializations
-		SIG_201A = new Signal((float) (510), (float) (height / 4), "SIG-201A", "DOUBLE_HEAD", "-->", "CW", SW5, false, panel);
-		SIG_201B = new Signal((float) (510), (float) (height / 3.2), "SIG-201B", "SINGLE_HEAD", "-->", "CW", null,
+		SIG_201A = new Signal(serial, (float) (510), (float) (height / 4), "SIG-201A", "DOUBLE_HEAD", "-->", "CW", SW5, false, panel);
+		SIG_201B = new Signal(serial, (float) (510), (float) (height / 3.2), "SIG-201B", "SINGLE_HEAD", "-->", "CW", null,
 				false, panel);
-		SIG_202A = new Signal((float) (910), (float) (height / 4), "SIG-202A", "SINGLE_HEAD", "<--", "CCW", null,
+		SIG_202A = new Signal(serial, (float) (910), (float) (height / 4), "SIG-202A", "SINGLE_HEAD", "<--", "CCW", null,
 				false, panel);
-		SIG_202B = new Signal((float) (910), (float) (height / 3.2), "SIG-202B", "DOUBLE_HEAD", "<--", "CCW", SW4,
+		SIG_202B = new Signal(serial, (float) (910), (float) (height / 3.2), "SIG-202B", "DOUBLE_HEAD", "<--", "CCW", SW4,
 				false, panel);
-		SIG_203A = new Signal((float) (1480), (float) (height / 4), "SIG-203A", "DOUBLE_HEAD", "-->", "CW", SW3, false, panel);
-		SIG_203B = new Signal((float) (1480), (float) (height / 3.2), "SIG-203B", "SINGLE_HEAD", "-->", "CW", null,
+		SIG_203A = new Signal(serial, (float) (1480), (float) (height / 4), "SIG-203A", "DOUBLE_HEAD", "-->", "CW", SW3, false, panel);
+		SIG_203B = new Signal(serial, (float) (1480), (float) (height / 3.2), "SIG-203B", "SINGLE_HEAD", "-->", "CW", null,
 				false, panel);
-		SIG_204A = new Signal((float) (450), (float) (height / 1.6), "SIG-204A", "DOUBLE_HEAD", "-->", "CCW", SW1,
+		SIG_204A = new Signal(serial, (float) (450), (float) (height / 1.6), "SIG-204A", "DOUBLE_HEAD", "-->", "CCW", SW1,
 				false, panel);
-		SIG_204B = new Signal((float) (450), (float) (height / 1.78), "SIG-204B", "SINGLE_HEAD", "-->", "CCW", null,
+		SIG_204B = new Signal(serial, (float) (450), (float) (height / 1.78), "SIG-204B", "SINGLE_HEAD", "-->", "CCW", null,
 				false, panel);
-		SIG_205A = new Signal((float) (730), (float) (height / 1.6), "SIG-205A", "SINGLE_HEAD", "<--", "CW", null,
+		SIG_205A = new Signal(serial, (float) (730), (float) (height / 1.6), "SIG-205A", "SINGLE_HEAD", "<--", "CW", null,
 				false, panel);
-		SIG_205B = new Signal((float) (730), (float) (height / 1.78), "SIG-205B", "SINGLE_HEAD", "<--", "CW", null,
+		SIG_205B = new Signal(serial, (float) (730), (float) (height / 1.78), "SIG-205B", "SINGLE_HEAD", "<--", "CW", null,
 				false, panel);
-		SIG_206A = new Signal((float) (1200), (float) (height / 1.6), "SIG-206A", "SINGLE_HEAD", "-->", "CCW", null,
+		SIG_206A = new Signal(serial, (float) (1200), (float) (height / 1.6), "SIG-206A", "SINGLE_HEAD", "-->", "CCW", null,
 				false, panel);
-		SIG_206B = new Signal((float) (1200), (float) (height / 1.78), "SIG-206B", "SINGLE_HEAD", "-->", "CCW", null,
+		SIG_206B = new Signal(serial, (float) (1200), (float) (height / 1.78), "SIG-206B", "SINGLE_HEAD", "-->", "CCW", null,
 				false, panel);
-		SIG_207A = new Signal((float) (790), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
+		SIG_207A = new Signal(serial, (float) (790), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
 				"SIG-207A", "SINGLE_HEAD", "<--", "CW", null, false, panel);
-		SIG_208A = new Signal((float) (1130), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
+		SIG_208A = new Signal(serial, (float) (1130), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 4),
 				"SIG-208A", "SINGLE_HEAD", "-->", "CCW", null, false, panel);
-		buffer1 = new Signal((float) (width / 2), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8),
+		buffer1 = new Signal(serial, (float) (width / 2), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, true, panel); // FOR END OF FREIGHT STORAGE TRACK
-		buffer2 = new Signal((float) (width / 2.8), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
+		buffer2 = new Signal(serial, (float) (width / 2.8), (float) (height / 2.5 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, true, panel);
 		
 		// Standalone Node Initializations
@@ -656,18 +661,18 @@ public class MRRDispatchFrame extends JFrame {
 		g2d.setColor(Color.WHITE);
 		g2d.drawString("Debug Terminal", getWidth() - 500, 830);
 		g2d.drawString("_________________________________________________________", getWidth() - 500, 834);
-		for (int i = 0; i < SendRecieve.debugTerminal.size(); i++) {
+		/*for (int i = 0; i < Sender.debugTerminal.size(); i++) {
 			g2d.setColor(Color.WHITE);
-			g2d.drawString(SendRecieve.debugTerminal.get(i).substring(0, 25), getWidth() - 500, 850 + i * 20);
-			g2d.drawString(SendRecieve.debugTerminal.get(i).substring(28), getWidth() - 280, 850 + i * 20);
-			String d = SendRecieve.debugTerminal.get(i).substring(25, 28);
+			g2d.drawString(Sender.debugTerminal.get(i).substring(0, 25), getWidth() - 500, 850 + i * 20);
+			g2d.drawString(Sender.debugTerminal.get(i).substring(28), getWidth() - 280, 850 + i * 20);
+			String d = Sender.debugTerminal.get(i).substring(25, 28);
 			if(d.equals("OUT")) {
 				g2d.setColor(Color.ORANGE);
 			} else {
 				g2d.setColor(Color.CYAN);
 			}
 			g2d.drawString(d, getWidth() - 330, 850 + i * 20);
-		}
+		}*/
 	}
 	
 	// Mouse events
