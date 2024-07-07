@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -94,7 +95,8 @@ public class MRRDispatchFrame extends JFrame {
 	
 	public MRRDispatchFrame() {
 		super("MRR Dispatcher");
-		serial = new SerialWriter("COM7"); // Main serial object for Arduino communication, set to COM7 by default
+		serial = new SerialWriter("COM10"); // Main serial object for Arduino communication, set to COM7 by default
+		//serial.startReading();
 		
 		setLayout(new BorderLayout());
 		optionsPanel.setBackground(Color.WHITE);
@@ -125,10 +127,12 @@ public class MRRDispatchFrame extends JFrame {
 		JMenu toolsDropdown = new JMenu("Tools");
 		JMenuItem debugToggleButton = new JMenuItem("Toggle Debug Mode");
 		JMenuItem setPortButton = new JMenuItem("Set Master Arduino Port");
+		JMenuItem testPingButton = new JMenuItem("Test Ping Arduinos");
 
 		// Add tool items to tools drop-down
 		toolsDropdown.add(debugToggleButton);
 		toolsDropdown.add(setPortButton);
+		toolsDropdown.add(testPingButton);
 		
 		// Create toolsButton menu
 		JMenu windowDropdown = new JMenu("Window");
@@ -394,6 +398,28 @@ public class MRRDispatchFrame extends JFrame {
 		    }
 		});
 		
+		testPingButton.addActionListener(e -> {
+			
+			JPanel windowPanel = new JPanel(new GridLayout(6, 2)); // 6 rows, 2 columns
+			windowPanel.setSize(800, 800);
+
+			windowPanel.add(new JLabel("Arduino Ping Test"));
+			
+			windowPanel.add(new JLabel("Start Test"));
+			
+			JTextArea terminalTextArea = new JTextArea();
+			terminalTextArea.setEditable(false);
+	        JScrollPane scrollPane = new JScrollPane(terminalTextArea);
+	        
+	        windowPanel.add(scrollPane, BorderLayout.SOUTH);
+			int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Add Train", JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE);
+			
+			//serial.writeData("Test_getName");
+			
+
+		});
+		
 		device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		fullscreenToggleButton.addActionListener(e -> {
 	        if (isFullscreen) {
@@ -598,6 +624,7 @@ public class MRRDispatchFrame extends JFrame {
 			
 			activeTrainLabel(g2d);
 			mapLabeling(g2d);
+			mapImagery(g2d);
 			debugTerminal(g2d);
 		}
 	}
@@ -661,13 +688,33 @@ public class MRRDispatchFrame extends JFrame {
 		g2d.drawString("TRK2", getWidth()/7, 14*getHeight()/51); 
 		g2d.drawString("STORAGE1", 13*getWidth()/30, 5*getHeight()/8); 
 		g2d.drawString("STORAGE2", 5*getWidth()/11, 13*getHeight()/29); 
-		g2d.drawString("STORAGE3", 4*getWidth()/10, 12*getHeight()/30); 
+		g2d.drawString("STORAGE3", 5*getWidth()/13, 12*getHeight()/30); 
 	}	
+	
+	void mapImagery(Graphics2D g2d) {
+		ImageIcon amtrakLogoIcon = new ImageIcon(Main.class.getResource("/icon/amtrak_logo.png").getPath());
+		Image image = amtrakLogoIcon.getImage(); // transform it
+
+        AffineTransform transform = new AffineTransform();
+        transform.translate(30, getHeight() - 130);
+        transform.scale(.035, .035);
+        
+		g2d.drawImage(image, transform, this);
+		
+		ImageIcon customIcon = new ImageIcon(Main.class.getResource("/icon/csx_logo.png").getPath());
+		image = customIcon.getImage(); // transform it
+
+        transform = new AffineTransform();
+        transform.translate(130, getHeight() - 125);
+        transform.scale(.2, .2);
+        
+		g2d.drawImage(image, transform, this);
+	}
 	
 	// Debug Terminal (displays information sent and received)
 	void debugTerminal(Graphics2D g2d) {
 		g2d.setColor(Color.WHITE);
-		g2d.drawString("Debug Terminal", getWidth() - 500, 830);
+		g2d.drawString("Communication Terminal", getWidth() - 500, 830);
 		g2d.drawString("_________________________________________________________", getWidth() - 500, 834);
 		for (int i = 0; i < serial.getDebugArray().size(); i++) {
 			g2d.setColor(Color.GREEN);
