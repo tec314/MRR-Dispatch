@@ -19,10 +19,10 @@ public class Signal {
 
 	Node signalNode;
 	Switch signalSwitch;
-	SerialWriter serial;
+	SerialComm serial;
 
 	// Constructor
-	public Signal(SerialWriter s, float x, float y, String name, String type, String direction, String flow, Switch sw, Boolean buffer,
+	public Signal(SerialComm s, float x, float y, String name, String type, String direction, String flow, Switch sw, Boolean buffer,
 			JPanel panel) {
 		this.serial = s;
 		this.panel = panel;

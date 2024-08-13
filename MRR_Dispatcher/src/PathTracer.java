@@ -10,6 +10,8 @@ class pathTracer {
 	Node startNode;
 	Node thisCurrentNode;
 	Node thisFollowingNode;
+	
+	Node endOfBlock;
 
 	Boolean restrictedAccess = false;
 	int priorityOfPath; // ranked on scale from 1 (lowest) to 10 (highest) and compared to other train
@@ -67,6 +69,8 @@ class pathTracer {
 		nodePath.clear(); // clears nodes from previous path for new path
 		forwSignalPath.clear(); // clears signals from previous path for new path
 		oppSignalPath.clear(); // clears signals behind train
+		
+		endOfBlock = null;
 	}
 
 	void tracePath() {
@@ -226,6 +230,7 @@ class pathTracer {
 		for (Node node : nodePath) {
 			if (findBlockEnd && node.getSignal() != null && node != startNode) {
 				currentBlockPath.add(node); // This last entry is the ending signal of the current block
+				endOfBlock = node;
 
 				findBlockEnd = false;
 			} else if (findBlockEnd) {
@@ -257,5 +262,9 @@ class pathTracer {
 
 	void setPathDirection(String dir) {
 		pathDirection = dir;
+	}
+	
+	Node getEndOfBlock() {
+		return endOfBlock;
 	}
 }

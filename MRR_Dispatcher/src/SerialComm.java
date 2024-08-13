@@ -9,14 +9,16 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class SerialWriter {
+public class SerialComm {
     private SerialPort sp;
     
-    private String readString;
+    private String readString = "";
+    private String serialAddress = "";
+    private String serialMessage = "";
     
     public static ArrayList<String> debugArray = new ArrayList<String>();
 
-    SerialWriter(String portName) {
+    SerialComm(String portName) {
     	// https://stackoverflow.com/questions/69704119/jserialcomm-dynamically-detect-available-serial-ports-hotplug-device
     	// look into this?
     	
@@ -29,6 +31,7 @@ public class SerialWriter {
         	return;
         }
         
+        // Listener for reading any incoming data on SerialPort
         sp.addDataListener(new SerialPortDataListener() {
             @Override
             public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_AVAILABLE; }
@@ -38,17 +41,22 @@ public class SerialWriter {
                 if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
                     return;
                 byte[] newData = new byte[sp.bytesAvailable()];
-                int numRead = sp.readBytes(newData, newData.length);
+                sp.readBytes(newData, newData.length);
                 for(byte b : newData) {
                 	char c = (char) b;
-                	if(c == '.') {
+                	if(c == '_') {
+                		serialAddress = readString;
+                		readString = "";
+                	}
+                	else if(c == '.') {
+                		serialMessage = readString;
                 		// Get the current time
                         LocalDateTime now = LocalDateTime.now();
                         // Define the format for the timestamp
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
                         // Format the current time
                         String timestamp = now.format(formatter);
-                        debugArray.add(0, "[" + timestamp + "]" + " IN" + " msg: " + readString);
+                        debugArray.add(0, "[" + timestamp + "]" + " IN" + " msg: " + serialAddress + "_" + serialMessage);
                         if (debugArray.size() > 6) {
                             debugArray.remove(6);
                         }
@@ -58,12 +66,23 @@ public class SerialWriter {
                 		readString += c;	
                 	}
                 }
+
+                System.out.println(serialAddress);
+                System.out.println(serialMessage);
+                
+                // CHECK TRAINS FOR POSITION UPDATE
+                for(Train train : MRRDispatchFrame.trainArray) {
+                	if(serialMessage.equals(train.getGeneratedPath().getEndOfBlock().getSignal().getName())) {
+                		train.updatePosition(train.getGeneratedPath().getEndOfBlock());
+                	}
+                }
                 
             }
         });
         
     }
 
+    // Writer function for sending data on SerialPort
     public void writeData(String data) {
         try {
         	for(char c : data.toCharArray()) {
@@ -93,38 +112,6 @@ public class SerialWriter {
 			e.printStackTrace();
 		}
     }
-    
-    /*
-    public void startReading() {
-        new Thread(() -> {
-            try {
-                byte[] readBuffer = new byte[1024];
-                while (true) {
-                    int numBytes = sp.getInputStream().read(readBuffer);
-                    if (numBytes > 0) {
-                        String receivedData = new String(readBuffer, 0, numBytes);
-                        
-                        // Get the current time
-                        LocalDateTime now = LocalDateTime.now();
-                        // Define the format for the timestamp
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-                        // Format the current time
-                        String timestamp = now.format(formatter);
-                        
-                        synchronized (debugArray) {
-                            debugArray.add(0, "[" + timestamp + "]" + " IN" + " msg: " + receivedData);
-                            if (debugArray.size() > 6) {
-                                debugArray.remove(6);
-                            }
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-    */
     
     public ArrayList<String> getDebugArray() {
     	return debugArray;

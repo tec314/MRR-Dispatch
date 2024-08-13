@@ -91,11 +91,13 @@ public class MRRDispatchFrame extends JFrame {
 	public JPanel mapPanel = new DrawPanel();
 	public JLabel coordLabel = new JLabel();
 	
-	public static SerialWriter serial; // Serial object
+	public static SerialComm serial; // Serial object
 	
 	public MRRDispatchFrame() {
 		super("MRR Dispatcher");
-		serial = new SerialWriter("COM10"); // Main serial object for Arduino communication, set to COM7 by default
+		serial = new SerialComm("COM6"); // Main serial object for Arduino communication, set to COM7 by default 
+		// Change this so you can change the COM port if needed (no static value)!
+		
 		//serial.startReading();
 		
 		setLayout(new BorderLayout());
@@ -692,8 +694,9 @@ public class MRRDispatchFrame extends JFrame {
 	}	
 	
 	void mapImagery(Graphics2D g2d) {
+		Image image;
 		ImageIcon amtrakLogoIcon = new ImageIcon(Main.class.getResource("/icon/amtrak_logo.png").getPath());
-		Image image = amtrakLogoIcon.getImage(); // transform it
+		image = amtrakLogoIcon.getImage(); // transform it
 
         AffineTransform transform = new AffineTransform();
         transform.translate(30, getHeight() - 130);
@@ -701,12 +704,21 @@ public class MRRDispatchFrame extends JFrame {
         
 		g2d.drawImage(image, transform, this);
 		
-		ImageIcon customIcon = new ImageIcon(Main.class.getResource("/icon/csx_logo.png").getPath());
-		image = customIcon.getImage(); // transform it
+		ImageIcon csxIcon = new ImageIcon(Main.class.getResource("/icon/csx_logo.png").getPath());
+		image = csxIcon.getImage(); // transform it
 
         transform = new AffineTransform();
         transform.translate(130, getHeight() - 125);
         transform.scale(.2, .2);
+        
+		g2d.drawImage(image, transform, this);
+		
+		ImageIcon mrrdIcon = new ImageIcon(Main.class.getResource("/mrrd_logo.png").getPath());
+		image = mrrdIcon.getImage(); // transform it
+
+        transform = new AffineTransform();
+        transform.translate(20, getHeight() - 260);
+        transform.scale(.12, .12);
         
 		g2d.drawImage(image, transform, this);
 	}

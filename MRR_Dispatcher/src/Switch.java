@@ -22,13 +22,13 @@ public class Switch {
 	Node entryNode;
 	Node closedNode;
 	Node thrownNode;
-	SerialWriter writer;
+	SerialComm writer;
 
 	JButton throwSwitchButton;
-	SerialWriter serial;
+	SerialComm serial;
 
 	// Constructor
-	public Switch(SerialWriter s, float x, float y, int t, int c, String ed, String bl, String nm, JPanel panel) {
+	public Switch(SerialComm s, float x, float y, int t, int c, String ed, String bl, String nm, JPanel panel) {
 		this.serial = s;
 		this.panel = panel;
 		width = panel.getWidth();
