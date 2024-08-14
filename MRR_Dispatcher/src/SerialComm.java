@@ -61,6 +61,15 @@ public class SerialComm {
                             debugArray.remove(6);
                         }
                 		readString = "";
+                		
+                		// Ping test table filling
+                		if(serialAddress.equals("PING")) {
+                        	Object[] columnData = new Object[3];
+                        	columnData[0] = serialMessage;
+                        	columnData[1] = "XX";
+                        	columnData[2] = "SUCCESS";
+                        	MRRDispatchFrame.model.addRow(columnData);
+                        }
                 	}
                 	else {
                 		readString += c;	

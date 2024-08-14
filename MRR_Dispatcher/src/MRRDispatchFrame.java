@@ -9,6 +9,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -35,7 +37,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-
+import javax.swing.table.DefaultTableModel;
 import javax.swing.*;
 
 public class MRRDispatchFrame extends JFrame {
@@ -90,6 +92,9 @@ public class MRRDispatchFrame extends JFrame {
 	public JPanel optionsPanel = new JPanel(new GridLayout()); // 6 rows, 2 columns
 	public JPanel mapPanel = new DrawPanel();
 	public JLabel coordLabel = new JLabel();
+	
+	public static JTable terminalOut = new JTable();
+	public static DefaultTableModel model = new DefaultTableModel();
 	
 	public static SerialComm serial; // Serial object
 	
@@ -401,25 +406,29 @@ public class MRRDispatchFrame extends JFrame {
 		});
 		
 		testPingButton.addActionListener(e -> {
-			
-			JPanel windowPanel = new JPanel(new GridLayout(6, 2)); // 6 rows, 2 columns
+			JPanel windowPanel = new JPanel(); // 6 rows, 2 columns
 			windowPanel.setSize(800, 800);
 
 			windowPanel.add(new JLabel("Arduino Ping Test"));
 			
-			windowPanel.add(new JLabel("Start Test"));
+			JButton startPing = new JButton("Start Ping");
+			startPing.addActionListener(f -> {
+				model.setRowCount(0);
+				serial.writeData("TEST_GETNAME");
+			});
 			
-			JTextArea terminalTextArea = new JTextArea();
-			terminalTextArea.setEditable(false);
-	        JScrollPane scrollPane = new JScrollPane(terminalTextArea);
-	        
-	        windowPanel.add(scrollPane, BorderLayout.SOUTH);
-			int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Add Train", JOptionPane.OK_CANCEL_OPTION,
-					JOptionPane.PLAIN_MESSAGE);
+			windowPanel.add(startPing);
 			
-			//serial.writeData("Test_getName");
-			
+			terminalOut.setDefaultEditor(Object.class, null); // Makes table not editable
+			Object col[] = {"ArduinoName", "TT", "Success?"};
+			model.setColumnIdentifiers(col);
+			terminalOut.setModel(model);
 
+	        JScrollPane scrollPane = new JScrollPane(terminalOut);
+	        
+	        windowPanel.add(scrollPane);
+			int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Test Ping", JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE);
 		});
 		
 		device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
