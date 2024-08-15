@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
@@ -114,11 +116,13 @@ public class SerialComm {
 				Thread.sleep(200); // Delay to allow packets to propagate through Arduino network
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(null, "ERROR\nInterruped!", "Error", JOptionPane.ERROR_MESSAGE);
 				e.printStackTrace();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "ERROR\nNo port detected.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
     }
     

@@ -166,6 +166,39 @@ public class MRRDispatchFrame extends JFrame {
 		// Set the menu bar for the frame
 		optionsPanel.add(menuBar);
 
+		// Setting a new port for the Master Arduino connection
+		setPortButton.addActionListener(e -> {
+			JPanel windowPanel = new JPanel(new BorderLayout()); // 6 rows, 2 columns
+			windowPanel.setSize(800, 800);
+
+			windowPanel.add(new JLabel("Select New COM Port"), BorderLayout.NORTH);
+			
+			JComboBox<String> portOptions = new JComboBox<>();
+			
+			// Change this so that it detects what COM ports are available on the host's computer?
+			portOptions.addItem("COM1");
+			portOptions.addItem("COM2");
+			portOptions.addItem("COM3");
+			portOptions.addItem("COM4");
+			portOptions.addItem("COM5");
+			portOptions.addItem("COM6");
+			portOptions.addItem("COM7");
+			portOptions.addItem("COM8");
+			portOptions.addItem("COM9");
+			portOptions.addItem("COM10");
+			
+			portOptions.setSelectedIndex(0);
+
+			windowPanel.add(portOptions, BorderLayout.CENTER);
+	        
+			int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Select New Port", JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE);
+			
+			if (result == JOptionPane.OK_OPTION) {
+				serial = new SerialComm(portOptions.getSelectedItem().toString());
+			}
+		});
+			
 		// Action listeners for add trains
 		addTrainButton.addActionListener(e -> {
 			// Add action for Action 1
@@ -406,10 +439,10 @@ public class MRRDispatchFrame extends JFrame {
 		});
 		
 		testPingButton.addActionListener(e -> {
-			JPanel windowPanel = new JPanel(); // 6 rows, 2 columns
+			JPanel windowPanel = new JPanel(new BorderLayout()); // 6 rows, 2 columns
 			windowPanel.setSize(800, 800);
 
-			windowPanel.add(new JLabel("Arduino Ping Test"));
+			//windowPanel.add(new JLabel("Arduino Ping Test"));
 			
 			JButton startPing = new JButton("Start Ping");
 			startPing.addActionListener(f -> {
@@ -417,7 +450,7 @@ public class MRRDispatchFrame extends JFrame {
 				serial.writeData("TEST_GETNAME");
 			});
 			
-			windowPanel.add(startPing);
+			windowPanel.add(startPing, BorderLayout.SOUTH);
 			
 			terminalOut.setDefaultEditor(Object.class, null); // Makes table not editable
 			Object col[] = {"ArduinoName", "TT", "Success?"};
@@ -426,7 +459,7 @@ public class MRRDispatchFrame extends JFrame {
 
 	        JScrollPane scrollPane = new JScrollPane(terminalOut);
 	        
-	        windowPanel.add(scrollPane);
+	        windowPanel.add(scrollPane, BorderLayout.CENTER);
 			int result = JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Test Ping", JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.PLAIN_MESSAGE);
 		});
@@ -702,6 +735,7 @@ public class MRRDispatchFrame extends JFrame {
 		g2d.drawString("STORAGE3", 5*getWidth()/13, 12*getHeight()/30); 
 	}	
 	
+	// Graphics found throughout program
 	void mapImagery(Graphics2D g2d) {
 		Image image;
 		ImageIcon amtrakLogoIcon = new ImageIcon(Main.class.getResource("/icon/amtrak_logo.png").getPath());
