@@ -121,11 +121,13 @@ public class MRRDispatchFrame extends JFrame {
 		JMenuItem addTrainButton = new JMenuItem("Add Train");
 		JMenuItem removeTrainButton = new JMenuItem("Remove Train");
 		JMenuItem setTrainDirectionButton = new JMenuItem("Set Train Direction");
+		JMenuItem toggleLightingButton = new JMenuItem("Toggle Lighting");
 
 		// Add action items to actions drop-down
 		actionDropdown.add(addTrainButton);
 		actionDropdown.add(removeTrainButton);
 		actionDropdown.add(setTrainDirectionButton);
+		actionDropdown.add(toggleLightingButton);
 
 		// Add actionButton menu to menu bar
 		menuBar.add(actionDropdown);
@@ -416,6 +418,29 @@ public class MRRDispatchFrame extends JFrame {
 			} else {
 				JOptionPane.showMessageDialog(null, "ERROR\nNo trains to update direction.", "Error", JOptionPane.ERROR_MESSAGE);
 			}
+		});
+		
+		// Turn on lighting to all Arduino's containing lighting accessories
+		toggleLightingButton.addActionListener(e -> {
+			JPanel windowPanel = new JPanel(new GridLayout(2, 2)); // 6 rows, 2 columns
+			windowPanel.add(new JLabel("Turn ON"));
+			JButton onButton = new JButton("ON");
+			windowPanel.add(onButton);
+			
+			windowPanel.add(new JLabel("Turn OFF"));
+			JButton offButton = new JButton("OFF");
+			windowPanel.add(offButton);
+			
+			onButton.addActionListener(f -> {
+				serial.writeData("LIGHTS_ON");
+			});
+			
+			offButton.addActionListener(g -> {
+				serial.writeData("LIGHTS_OFF");
+			});
+			
+			JOptionPane.showConfirmDialog(optionsPanel, windowPanel, "Toggle Lighting", JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE);
 		});
 
 		debugToggleButton.addActionListener(e -> {
