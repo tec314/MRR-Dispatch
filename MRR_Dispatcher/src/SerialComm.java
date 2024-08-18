@@ -42,6 +42,7 @@ public class SerialComm {
             public void serialEvent(SerialPortEvent event) {
                 if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
                     return;
+                //System.out.println("GOT SOMETHING TO READ!");
                 byte[] newData = new byte[sp.bytesAvailable()];
                 sp.readBytes(newData, newData.length);
                 for(byte b : newData) {
@@ -71,7 +72,7 @@ public class SerialComm {
                         	columnData[1] = "XX";
                         	columnData[2] = "SUCCESS";
                         	MRRDispatchFrame.model.addRow(columnData);
-                        }
+                        }              		
                 	}
                 	else {
                 		readString += c;	
@@ -88,6 +89,8 @@ public class SerialComm {
                 	}
                 }
                 
+                serialAddress = "";
+        		serialMessage = "";
             }
         });
         
