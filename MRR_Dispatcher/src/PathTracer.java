@@ -56,13 +56,13 @@ class pathTracer {
 		// MULTI TRAIN + ISSUES FOR SIGNAL DISPLAY!!!!!!!!!!
 		for (Node node : forwSignalPath) {
 			if (node.getSignal() != null) {
-				node.getSignal().signalState("STOP");
+				//node.getSignal().signalState("STOP");
 			}
 		}
 
 		for (Node node : oppSignalPath) {
 			if (node.getSignal() != null) {
-				node.getSignal().signalState("STOP");
+				//node.getSignal().signalState("STOP");
 			}
 		}
 
@@ -134,7 +134,7 @@ class pathTracer {
 				completeLoop = true;
 
 				for (int i = 0; i < forwSignalPath.size(); i++) {
-					forwSignalPath.get(i).getSignal().signalState("CLEAR");
+					//forwSignalPath.get(i).getSignal().signalState("CLEAR");
 				}
 			}
 
@@ -206,6 +206,8 @@ class pathTracer {
 			oppSignalPath.get(0).getSignal().signalState("STOP");
 		if (oppSignalPath.size() > 1)
 			oppSignalPath.get(1).getSignal().signalState("APPROACH");
+		if (oppSignalPath.size() > 2)
+			oppSignalPath.get(2).getSignal().signalState("CLEAR");
 	}
 
 	// Complete possible path for train to take (renders first)

@@ -41,7 +41,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.*;
 
 public class MRRDispatchFrame extends JFrame {
-	public static Switch SW7;
 	public static Switch SW6;
 	public static Switch SW5;
 	public static Switch SW4;
@@ -65,7 +64,6 @@ public class MRRDispatchFrame extends JFrame {
 	public static Signal SIG_208A;
 	public static Signal buffer1;
 	public static Signal buffer2;
-	public static Signal buffer3;
 
 	public static Node node1;
 	public static Node node2;
@@ -529,7 +527,6 @@ public class MRRDispatchFrame extends JFrame {
 		int height = panel.getHeight();
 		
 		// Switch Initializations
-		SW7 = new Switch(serial, (float) (width / 3.12), (float) (height / 2), 0, 330, "CCW", "NW", "SW7", panel);
 		SW6 = new Switch(serial, (float) (width / 3.78), (float) (height / 1.78), 330, 0, "CCW", "NW", "SW6", panel);
 		SW5 = new Switch(serial, (float) (width / 3), (float) (height / 4), 30, 0, "CW", "NW", "SW5", panel);
 		SW4 = new Switch(serial, (float) (width / 3 + Math.cos(Math.toRadians(30)) * width / 16),
@@ -568,10 +565,8 @@ public class MRRDispatchFrame extends JFrame {
 				"SIG-208A", "SINGLE_HEAD", "-->", "CCW", null, false, panel);
 		buffer1 = new Signal(serial, (float) (width / 2), (float) (height / 1.6 + Math.sin(Math.toRadians(30)) * height / 8),
 				"buffer1", "SINGLE_HEAD", "-->", "CCW", null, true, panel); // FOR END OF FREIGHT STORAGE TRACK
-		buffer2 = new Signal(serial, (float) (width / 2), (float) (height / 2),
+		buffer2 = new Signal(serial, (float) (width / 2.64), (float) (height / 2.3),
 				"buffer2", "SINGLE_HEAD", "-->", "CCW", null, true, panel);
-		buffer3 = new Signal(serial, (float) (width / 2.64), (float) (height / 2.3),
-				"buffer3", "SINGLE_HEAD", "-->", "CCW", null, true, panel);
 		
 		// Standalone Node Initializations
 		node1 = new Node(width / 7, height / 4, false, true, "1", null, null, false, panel);
@@ -627,9 +622,7 @@ public class MRRDispatchFrame extends JFrame {
 		node9.setNextAndPreviousNode(SW2.closedNode);
 		SW2.entryNode.setNextAndPreviousNode(SW1.thrownNode);
 		buffer1.signalNode.setNextAndPreviousNode(SW2.thrownNode);
-		SW7.entryNode.setNextAndPreviousNode(SW6.thrownNode);
-		buffer2.signalNode.setNextAndPreviousNode(SW7.thrownNode);
-		buffer3.signalNode.setNextAndPreviousNode(SW7.closedNode);
+		buffer2.signalNode.setNextAndPreviousNode(SW6.thrownNode);
 		
 		repaint();
 	}
@@ -756,8 +749,7 @@ public class MRRDispatchFrame extends JFrame {
 		g2d.drawString("TRK1", getWidth()/7, 7*getHeight()/33); 
 		g2d.drawString("TRK2", getWidth()/7, 14*getHeight()/51); 
 		g2d.drawString("STORAGE1", 13*getWidth()/30, 5*getHeight()/8); 
-		g2d.drawString("STORAGE2", 5*getWidth()/11, 13*getHeight()/29); 
-		g2d.drawString("STORAGE3", 5*getWidth()/13, 12*getHeight()/30); 
+		g2d.drawString("STORAGE2", 5*getWidth()/13, 12*getHeight()/30); 
 	}	
 	
 	// Graphics found throughout program

@@ -2,12 +2,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.io.InputStream;
-
+import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -40,9 +41,9 @@ public class SerialComm {
 
             @Override
             public void serialEvent(SerialPortEvent event) {
+                
                 if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
                     return;
-                //System.out.println("GOT SOMETHING TO READ!");
                 byte[] newData = new byte[sp.bytesAvailable()];
                 sp.readBytes(newData, newData.length);
                 for(byte b : newData) {
@@ -72,25 +73,28 @@ public class SerialComm {
                         	columnData[1] = "XX";
                         	columnData[2] = "SUCCESS";
                         	MRRDispatchFrame.model.addRow(columnData);
-                        }              		
+                        }
+                		
+                		serialAddress = "";
+                        
                 	}
                 	else {
                 		readString += c;	
                 	}
                 }
 
-                System.out.println(serialAddress);
-                System.out.println(serialMessage);
+                //System.out.println(serialAddress);
+                //System.out.println(serialMessage);
                 
                 // CHECK TRAINS FOR POSITION UPDATE
                 for(Train train : MRRDispatchFrame.trainArray) {
                 	if(serialMessage.equals(train.getGeneratedPath().getEndOfBlock().getSignal().getName())) {
                 		train.updatePosition(train.getGeneratedPath().getEndOfBlock());
+                		
+                		serialMessage = "";
                 	}
                 }
-                
-                serialAddress = "";
-        		serialMessage = "";
+            
             }
         });
         
